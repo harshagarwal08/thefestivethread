@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { cdnUrl } from "@/lib/cloudinary";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/lib/cart";
@@ -37,7 +38,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="flex-1 flex items-center gap-2.5 min-w-0">
-          <Image src="/TFTLogo.png" alt="The Festive Thread by Kavita" width={36} height={36} className="object-contain shrink-0" />
+          <Image src={cdnUrl("/TFTLogo.png")} alt="The Festive Thread by Kavita" width={36} height={36} className="object-contain shrink-0" />
           <div className="flex flex-col leading-none min-w-0">
             <span className="font-display text-lg md:text-xl text-[#1C1009] tracking-wide leading-none truncate">
               The Festive Thread

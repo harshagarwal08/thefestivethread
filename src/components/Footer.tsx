@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { cdnUrl } from "@/lib/cloudinary";
 
 const shopLinks = [
   { href: "/shop?cat=single", label: "Single Rakhis" },
@@ -15,9 +16,10 @@ const infoLinks: { href: string; label: string; external?: boolean }[] = [
 ];
 
 const helpLinks = [
-  { href: "/contact", label: "Shipping Info" },
-  { href: "/contact", label: "Custom Orders" },
-  { href: "/contact", label: "Bulk Orders" },
+  { href: "/shipping-policy", label: "Shipping Policy" },
+  { href: "/refund-policy", label: "Refund Policy" },
+  { href: "/terms", label: "Terms & Conditions" },
+  { href: "/contact-details", label: "Contact Details" },
 ];
 
 export default function Footer() {
@@ -26,7 +28,7 @@ export default function Footer() {
       <div className="max-w-[1300px] mx-auto px-4 md:px-10 pt-16 pb-10 grid grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8 md:gap-12">
         <div className="col-span-2 md:col-span-1">
           <div className="flex items-center gap-3 mb-3">
-            <Image src="/TFTLogo.png" alt="The Festive Thread by Kavita" width={32} height={32} className="object-contain brightness-200 opacity-80" />
+            <Image src={cdnUrl("/TFTLogo.png")} alt="The Festive Thread by Kavita" width={32} height={32} className="object-contain brightness-200 opacity-80" />
             <div>
               <div className="font-display text-xl text-[#F9F5EF]">The Festive Thread</div>
               <div className="text-[0.55rem] tracking-[0.16em] uppercase text-[#8A7968] mt-0.5">by Kavita</div>

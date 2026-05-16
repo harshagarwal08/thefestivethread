@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
+import { cdnUrl } from "@/lib/cloudinary";
 
 interface ProductGalleryProps {
   images: string[];
@@ -35,7 +36,7 @@ export default function ProductGallery({ images, productName, tag, fallbackBg }:
                 className="absolute inset-0"
               >
                 <Image
-                  src={images[active]}
+                  src={cdnUrl(images[active])}
                   alt={productName}
                   fill
                   className="object-cover"
@@ -80,7 +81,7 @@ export default function ProductGallery({ images, productName, tag, fallbackBg }:
                     : "opacity-55 hover:opacity-100"
                 }`}
               >
-                <Image src={src} alt={`${productName} view ${i + 1}`} fill className="object-cover" sizes="64px" />
+                <Image src={cdnUrl(src)} alt={`${productName} view ${i + 1}`} fill className="object-cover" sizes="64px" />
               </button>
             ))}
           </div>
@@ -118,7 +119,7 @@ export default function ProductGallery({ images, productName, tag, fallbackBg }:
               onClick={(e) => e.stopPropagation()}
             >
               <Image
-                src={images[active]}
+                src={cdnUrl(images[active])}
                 alt={productName}
                 fill
                 className="object-contain"

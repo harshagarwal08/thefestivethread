@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { getProductById } from "@/lib/products";
 import { boxes, chocolates, getBox, getChocolate, type BoxId, type ChocolateId } from "@/lib/hamperOptions";
 import { useCart } from "@/lib/cart";
+import { cdnUrl } from "@/lib/cloudinary";
 
 /* ─── Box visual backgrounds ─── */
 const boxBg: Record<BoxId, string> = {
@@ -112,7 +113,7 @@ function PickerCard({
     >
       <div className="relative h-44 md:h-52">
         {image ? (
-          <Image src={image} alt={label} fill className="object-cover" sizes="208px" />
+          <Image src={cdnUrl(image)} alt={label} fill className="object-cover" sizes="208px" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: bg }}>
             {illustration}
@@ -227,7 +228,7 @@ export default function HamperClient() {
           {rakhi && (
             <div className="flex items-center gap-4 pb-6 border-b border-[#EDE5D8]">
               <div className="relative w-12 h-14 shrink-0 overflow-hidden bg-[#EDE5D8]">
-                {rakhi.image && <Image src={rakhi.image} alt={rakhi.name} fill className="object-cover" sizes="48px" />}
+                {rakhi.image && <Image src={cdnUrl(rakhi.image)} alt={rakhi.name} fill className="object-cover" sizes="48px" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[0.55rem] tracking-[0.16em] uppercase text-[#B5541E] mb-0.5">Your rakhi</p>
@@ -342,7 +343,7 @@ export default function HamperClient() {
               className="relative h-40 overflow-hidden"
             >
               {box.image ? (
-                <Image src={box.image} alt={box.label} fill className="object-cover object-center" sizes="340px" priority />
+                <Image src={cdnUrl(box.image)} alt={box.label} fill className="object-cover object-center" sizes="340px" priority />
               ) : (
                 <div className="absolute inset-0" style={{ background: boxBg[boxId] }}>
                   <div className="absolute inset-0 flex items-center justify-center opacity-10 scale-[2.5] pointer-events-none">
@@ -367,7 +368,7 @@ export default function HamperClient() {
               {/* Rakhi photo */}
               <div className="relative w-20 h-24 shrink-0 overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.18)] ring-1 ring-[#DDD4C4]">
                 {rakhi?.image ? (
-                  <Image src={rakhi.image} alt={rakhi.name} fill className="object-cover" sizes="80px" />
+                  <Image src={cdnUrl(rakhi.image)} alt={rakhi.name} fill className="object-cover" sizes="80px" />
                 ) : (
                   <div className="w-full h-full bg-[#EDE5D8] flex flex-col items-center justify-center gap-1.5">
                     <div className="w-4 h-px bg-[#C9972C]/50" />
@@ -400,7 +401,7 @@ export default function HamperClient() {
                 >
                   <div className="relative h-14 overflow-hidden bg-[#EDE5D8]">
                     {choco.image ? (
-                      <Image src={choco.image} alt={choco.label} fill className="object-cover" sizes="90px" />
+                      <Image src={cdnUrl(choco.image)} alt={choco.label} fill className="object-cover" sizes="90px" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center" style={{ background: chocoBg[chocoId] }}>
                         <ChocoIllustration id={chocoId} />
@@ -419,7 +420,7 @@ export default function HamperClient() {
               {/* Roli Chawal */}
               <div className="flex-1 flex flex-col gap-1.5">
                 <div className="relative h-14 overflow-hidden bg-[#EDE5D8]">
-                  <Image src="/images/rolichawal.jpg" alt="Roli Chawal" fill className="object-cover" sizes="90px" />
+                  <Image src={cdnUrl("/images/rolichawal.jpg")} alt="Roli Chawal" fill className="object-cover" sizes="90px" />
                 </div>
                 <p className="text-[0.52rem] tracking-[0.1em] uppercase text-[#8A7968]">Roli Chawal</p>
                 <p className="text-[0.6rem] font-medium text-[#B5A898] -mt-0.5">Included</p>
@@ -428,7 +429,7 @@ export default function HamperClient() {
               {/* Card */}
               <div className="flex-1 flex flex-col gap-1.5">
                 <div className="relative h-14 overflow-hidden bg-[#EDE5D8]">
-                  <Image src="/images/card.jpg" alt="Rakhi Card" fill className="object-cover" sizes="90px" />
+                  <Image src={cdnUrl("/images/card.jpg")} alt="Rakhi Card" fill className="object-cover" sizes="90px" />
                 </div>
                 <p className="text-[0.52rem] tracking-[0.1em] uppercase text-[#8A7968]">Rakhi Card</p>
                 <p className="text-[0.6rem] font-medium text-[#B5A898] -mt-0.5">Included</p>

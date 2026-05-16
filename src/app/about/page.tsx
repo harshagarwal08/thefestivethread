@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { cdnUrl } from "@/lib/cloudinary";
 
 export const metadata: Metadata = {
   title: "Our Story — The Festive Thread by Kavita",
@@ -33,7 +34,7 @@ export default function AboutPage() {
       {/* Story */}
       <div className="max-w-[1300px] mx-auto px-4 md:px-10 py-14 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-start">
         <div className="relative aspect-3/4 overflow-hidden">
-          <Image src="/images/profile.jpeg" alt="Kavita" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+          <Image src={cdnUrl("/images/profile.jpeg")} alt="Kavita" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
         </div>
         <div className="flex flex-col gap-5 md:gap-6">
           <p className="font-display text-[1.25rem] md:text-[1.4rem] italic text-[#B5541E] leading-[1.6]">

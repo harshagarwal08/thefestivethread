@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Product, placeholderColor } from "@/lib/products";
+import { cdnUrl } from "@/lib/cloudinary";
 
 export default function ProductCard({ product }: { product: Product }) {
   const bg = placeholderColor(product.id);
@@ -15,7 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {product.image ? (
           <>
             <Image
-              src={product.image}
+              src={cdnUrl(product.image)}
               alt={product.name}
               fill
               className={`object-cover transition-all duration-700 ${hasSecond ? "group-hover:opacity-0" : ""}`}
@@ -23,7 +24,7 @@ export default function ProductCard({ product }: { product: Product }) {
             />
             {hasSecond && (
               <Image
-                src={product.image2!}
+                src={cdnUrl(product.image2!)}
                 alt={`${product.name} — alternate view`}
                 fill
                 className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700"

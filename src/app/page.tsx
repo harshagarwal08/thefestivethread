@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import { products } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
+import { cdnUrl } from "@/lib/cloudinary";
 
 const featuredIds = ["cb-12", "sr-07", "sr-12", "cb-01"];
 const featured = featuredIds.map((id) => products.find((p) => p.id === id)!);
@@ -151,7 +152,7 @@ export default function Home() {
                       }}
                     >
                       <div className="relative w-full h-full">
-                        <Image src={card.src} alt="Handcrafted rakhi" fill className="object-cover" sizes="260px" priority={card.z === 3} />
+                        <Image src={cdnUrl(card.src)} alt="Handcrafted rakhi" fill className="object-cover" sizes="260px" priority={card.z === 3} />
                       </div>
                     </div>
                   </motion.div>
@@ -214,7 +215,7 @@ export default function Home() {
       <section className="bg-[#EDE5D8] py-14 md:py-24">
         <div className="max-w-[1300px] mx-auto px-4 md:px-10 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
           <div className="relative aspect-[3/4] overflow-hidden">
-            <Image src="/images/profile.jpeg" alt="Kavita" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+            <Image src={cdnUrl("/images/profile.jpeg")} alt="Kavita" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
           </div>
           <div className="flex flex-col gap-5">
             <span className="text-[0.62rem] tracking-[0.22em] uppercase text-[#B5541E]">The Maker</span>
