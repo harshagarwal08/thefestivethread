@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
@@ -76,56 +76,93 @@ function RakhiPickerCard({ product, qty, onAdd, onRemove, selectedVariant, onVar
   selectedVariant?: string;
   onVariant: (v: string) => void;
 }) {
+  const isSelected = qty > 0;
   return (
-    <div className={`border transition-colors ${qty > 0 ? "border-[#B5541E]" : "border-[#DDD4C4]"} bg-white`}>
-      <div className="relative h-28 overflow-hidden bg-[#EDE5D8]">
+    <motion.div
+      layout
+      className={`relative overflow-hidden bg-white transition-shadow duration-300 ${
+        isSelected
+          ? "shadow-[0_6px_24px_rgba(181,84,30,0.18)] ring-1 ring-[#B5541E]"
+          : "shadow-[0_2px_8px_rgba(0,0,0,0.07)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.12)]"
+      }`}
+    >
+      {/* Image */}
+      <div className="relative overflow-hidden bg-[#EDE5D8]" style={{ paddingBottom: "100%" }}>
         {product.image && (
-          <Image src={cdnUrl(product.image)} alt={product.name} fill className="object-cover" sizes="160px" />
+          <Image src={cdnUrl(product.image)} alt={product.name} fill className="object-cover transition-transform duration-500 hover:scale-105" sizes="240px" />
         )}
-        {qty > 0 && (
-          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#B5541E] flex items-center justify-center">
-            <span className="text-[0.6rem] font-bold text-white">{qty}</span>
-          </div>
+        {/* Selected overlay badge */}
+        <AnimatePresence>
+          {isSelected && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              className="absolute top-2 right-2 w-7 h-7 bg-[#B5541E] rounded-full flex items-center justify-center shadow-md z-10"
+            >
+              <span className="text-white text-[0.72rem] font-bold leading-none">{qty}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {/* Tag */}
+        {product.tag && !isSelected && (
+          <span className="absolute top-2 left-2 text-[0.52rem] tracking-[0.12em] uppercase bg-[#1C1009] text-[#F9F5EF] px-1.5 py-0.5">
+            {product.tag}
+          </span>
         )}
       </div>
-      <div className="p-2.5">
-        <p className="font-display text-[0.82rem] text-[#1C1009] leading-tight truncate">{product.name}</p>
-        <p className="text-[0.65rem] text-[#8A7968] mt-0.5">₹{product.price}</p>
 
+      {/* Info */}
+      <div className="p-3">
+        <p className="font-display text-[0.88rem] text-[#1C1009] leading-tight">{product.name}</p>
+        <p className="text-[0.68rem] text-[#8A7968] mt-0.5 font-medium">₹{product.price}</p>
+
+        {/* Variant swatches */}
         {product.variants && product.variants.length > 0 && (
-          <div className="flex gap-1 mt-1.5 flex-wrap">
+          <div className="flex gap-1.5 mt-2">
             {product.variants.map((v) => (
               <button
                 key={v.value}
                 onClick={() => onVariant(v.value)}
-                className={`w-4 h-4 rounded-full border-2 transition-all ${
-                  selectedVariant === v.value ? "border-[#B5541E] scale-110" : "border-transparent"
+                className={`w-4.5 h-4.5 rounded-full border-[1.5px] transition-all duration-150 ${
+                  selectedVariant === v.value ? "border-[#B5541E] scale-115 ring-1 ring-[#B5541E]/30" : "border-[#DDD4C4] hover:border-[#B5A898]"
                 }`}
-                style={{ backgroundColor: v.color }}
+                style={{ backgroundColor: v.color, width: 18, height: 18 }}
                 title={v.label}
               />
             ))}
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-2">
+        {/* Controls */}
+        <div className="mt-3">
           {qty === 0 ? (
             <button
-              onClick={() => onAdd(product.variants?.[0]?.value)}
-              className="w-full text-[0.6rem] tracking-[0.1em] uppercase py-1.5 bg-[#1C1009] text-[#F9F5EF] hover:bg-[#B5541E] transition-colors"
+              onClick={() => onAdd(selectedVariant ?? product.variants?.[0]?.value)}
+              className="w-full text-[0.6rem] tracking-[0.12em] uppercase py-2 border border-[#1C1009] text-[#1C1009] hover:bg-[#1C1009] hover:text-[#F9F5EF] transition-colors duration-200"
             >
-              Add
+              + Add
             </button>
           ) : (
-            <div className="flex items-center border border-[#DDD4C4] w-full justify-between">
-              <button onClick={onRemove} className="w-7 h-7 flex items-center justify-center text-[#8A7968] hover:bg-[#EDE5D8] transition-colors">−</button>
-              <span className="text-[0.82rem] text-[#1C1009]">{qty}</span>
-              <button onClick={() => onAdd(selectedVariant)} className="w-7 h-7 flex items-center justify-center text-[#8A7968] hover:bg-[#EDE5D8] transition-colors">+</button>
+            <div className="flex items-center border border-[#B5541E] overflow-hidden">
+              <button
+                onClick={onRemove}
+                className="flex-1 py-2 text-[#8A7968] hover:bg-[#FBF7F2] transition-colors text-base leading-none flex items-center justify-center"
+              >
+                −
+              </button>
+              <span className="w-8 text-center text-[0.85rem] font-medium text-[#1C1009] border-x border-[#B5541E]/40">{qty}</span>
+              <button
+                onClick={() => onAdd(selectedVariant)}
+                className="flex-1 py-2 text-[#8A7968] hover:bg-[#FBF7F2] transition-colors text-base leading-none flex items-center justify-center"
+              >
+                +
+              </button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -133,6 +170,7 @@ const Rule = () => <div className="h-px bg-[#EDE5D8] w-full" />;
 
 function HamperBuilderInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addHamper } = useCart();
 
   const [boxId, setBoxId] = useState<BoxId>("wooden");
@@ -141,6 +179,22 @@ function HamperBuilderInner() {
   const [variantMap, setVariantMap] = useState<Record<string, string>>({});
   const [catFilter, setCatFilter] = useState<"all" | "single" | "combo" | "kids">("all");
   const [added, setAdded] = useState(false);
+
+  // Pre-select rakhi if navigated from product detail page
+  useEffect(() => {
+    const preselect = searchParams.get("rakhi");
+    if (!preselect) return;
+    const product = getProductById(preselect);
+    if (!product) return;
+    const variant = product.variants?.[0]?.value;
+    setRakhis([{ productId: preselect, quantity: 1, variant }]);
+    if (variant) setVariantMap({ [preselect]: variant });
+    // Scroll to rakhi section after a brief delay
+    setTimeout(() => {
+      document.getElementById("rakhi-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 400);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const box = getBox(boxId);
   const choco = getChocolate(chocoId);
@@ -263,7 +317,7 @@ function HamperBuilderInner() {
           <Rule />
 
           {/* 03 — Rakhis */}
-          <section>
+          <section id="rakhi-section">
             <div className="flex items-baseline gap-3 mb-6">
               <span className="font-display text-[3rem] font-light text-[#EDE5D8] leading-none select-none">03</span>
               <div>
@@ -271,6 +325,57 @@ function HamperBuilderInner() {
                 <p className="text-[0.68rem] text-[#8A7968] mt-0.5">Mix and match — add as many as you like</p>
               </div>
             </div>
+
+            {/* Selected tray */}
+            <AnimatePresence>
+              {rakhis.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden mb-5"
+                >
+                  <div className="bg-[#FBF7F2] border border-[#DDD4C4] p-4">
+                    <p className="text-[0.58rem] tracking-[0.18em] uppercase text-[#B5541E] mb-3 font-medium">
+                      {totalRakhiCount} rakhi{totalRakhiCount !== 1 ? "s" : ""} selected
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {rakhis.map((r, i) => {
+                        const p = getProductById(r.productId);
+                        if (!p) return null;
+                        const activeVariant = variantMap[r.productId] ?? r.variant;
+                        return (
+                          <motion.div
+                            key={i}
+                            layout
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.85 }}
+                            className="flex items-center gap-2 bg-white border border-[#DDD4C4] pr-2 pl-1 py-1"
+                          >
+                            <div className="relative w-8 h-9 shrink-0 overflow-hidden bg-[#EDE5D8]">
+                              {p.image && <Image src={cdnUrl(p.image)} alt={p.name} fill className="object-cover" sizes="32px" />}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[0.72rem] text-[#1C1009] leading-tight font-medium truncate max-w-[100px]">{p.name}</p>
+                              {r.variant && (
+                                <p className="text-[0.58rem] text-[#8A7968]">{p.variants?.find(v => v.value === activeVariant)?.label}</p>
+                              )}
+                            </div>
+                            <span className="text-[0.62rem] text-[#8A7968] shrink-0">×{r.quantity}</span>
+                            <button
+                              onClick={() => removeRakhi(r.productId, r.variant)}
+                              className="ml-1 text-[#B5A898] hover:text-[#B5541E] transition-colors text-sm leading-none"
+                              aria-label="Remove"
+                            >×</button>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Category filter */}
             <div className="flex gap-2 mb-5 flex-wrap">
@@ -284,8 +389,8 @@ function HamperBuilderInner() {
               ))}
             </div>
 
-            {/* Product grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+            {/* Product grid — 2 cols mobile, 3 cols md+ */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
               {filteredProducts.map((product) => {
                 const activeVariant = variantMap[product.id] ?? product.variants?.[0]?.value;
                 const qty = getRakhiQty(product.id, product.variants ? activeVariant : undefined);
