@@ -1,22 +1,48 @@
 import crypto from "crypto";
 
-const BASE_URL = process.env.INSTAMOJO_ENV === "live"
-  ? "https://www.instamojo.com/api/1.1"
-  : "https://test.instamojo.com/api/1.1";
+const IS_TEST = process.env.INSTAMOJO_CLIENT_ID?.startsWith("TEST");
+const BASE_URL = IS_TEST
+  ? "https://test.instamojo.com"
+  : "https://www.instamojo.com";
 
-const HEADERS = {
-  "X-Api-Key": process.env.INSTAMOJO_API_KEY!,
-  "X-Auth-Token": process.env.INSTAMOJO_AUTH_TOKEN!,
-  "Content-Type": "application/x-www-form-urlencoded",
-};
+// OAuth2 token cached in memory
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
+async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.value;
+  }
+
+  const res = await fetch(`${BASE_URL}/oauth2/token/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: process.env.INSTAMOJO_CLIENT_ID!,
+      client_secret: process.env.INSTAMOJO_CLIENT_SECRET!,
+    }).toString(),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.access_token) {
+    throw new Error(`Instamojo auth failed: ${JSON.stringify(data)}`);
+  }
+
+  // Cache for slightly less than expiry
+  cachedToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + (data.expires_in - 60) * 1000,
+  };
+  return cachedToken.value;
+}
 
 export interface PaymentRequestParams {
   amount: number;
   buyerName: string;
   email: string;
   phone: string;
-  purpose: string; // order ref — shown on Instamojo receipt
-  remarks: string; // encoded order data, returned in webhook
+  purpose: string;
+  remarks: string;
   redirectUrl: string;
   webhookUrl: string;
 }
@@ -27,42 +53,45 @@ export interface PaymentRequestResponse {
 }
 
 export async function createPaymentRequest(params: PaymentRequestParams): Promise<PaymentRequestResponse> {
-  const body = new URLSearchParams({
-    purpose: params.purpose,
-    amount: params.amount.toFixed(2),
-    buyer_name: params.buyerName,
-    email: params.email || "noreply@thefestivethread.com",
-    phone: params.phone,
-    remarks: params.remarks,
-    redirect_url: params.redirectUrl,
-    webhook: params.webhookUrl,
-    send_email: "false",
-    send_sms: "false",
-    allow_repeated_payments: "false",
-  });
+  const token = await getAccessToken();
 
-  const res = await fetch(`${BASE_URL}/payment-requests/`, {
+  const res = await fetch(`${BASE_URL}/v3/gateway/orders/`, {
     method: "POST",
-    headers: HEADERS,
-    body: body.toString(),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: params.buyerName,
+      email: params.email || "noreply@thefestivethread.com",
+      phone: params.phone,
+      amount: params.amount.toFixed(2),
+      transaction_id: params.purpose,
+      purpose: `The Festive Thread — ${params.purpose}`,
+      redirect_url: params.redirectUrl,
+      webhook_url: params.webhookUrl,
+      description: params.remarks,
+      send_email: false,
+      send_sms: false,
+    }),
   });
 
   const data = await res.json();
 
-  if (!res.ok || !data.success) {
-    throw new Error(data.message || `Instamojo error: ${res.status}`);
+  if (!res.ok || !data.id) {
+    throw new Error(`Instamojo order failed: ${JSON.stringify(data)}`);
   }
 
   return {
-    paymentRequestId: data.payment_request.id,
-    paymentUrl: data.payment_request.longurl,
+    paymentRequestId: data.id,
+    paymentUrl: data.payment_options?.payment_url ?? data.longurl,
   };
 }
 
-// Verifies webhook MAC to ensure payload isn't tampered
-// Instamojo MAC: HMAC-SHA1(salt, sorted values of all params except mac joined by |)
+// Webhook MAC verification (same logic for both old and new API)
 export function verifyWebhookMAC(payload: Record<string, string>): boolean {
-  const salt = process.env.INSTAMOJO_SALT!;
+  const salt = process.env.INSTAMOJO_SALT;
+  if (!salt) return process.env.NODE_ENV === "development"; // only skip in local dev
   const receivedMAC = payload.mac;
   if (!receivedMAC) return false;
 
