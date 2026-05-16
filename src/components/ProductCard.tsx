@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Product, placeholderColor } from "@/lib/products";
-import { cdnUrl } from "@/lib/cloudinary";
+import { cdnUrl, blurDataUrl } from "@/lib/cloudinary";
 
 export default function ProductCard({ product }: { product: Product }) {
   const bg = placeholderColor(product.id);
@@ -21,6 +21,8 @@ export default function ProductCard({ product }: { product: Product }) {
               fill
               className={`object-cover transition-all duration-700 ${hasSecond ? "group-hover:opacity-0" : ""}`}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              placeholder="blur"
+              blurDataURL={blurDataUrl}
             />
             {hasSecond && (
               <Image
@@ -29,6 +31,8 @@ export default function ProductCard({ product }: { product: Product }) {
                 fill
                 className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                placeholder="blur"
+                blurDataURL={blurDataUrl}
               />
             )}
           </>

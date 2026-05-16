@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
-import { cdnUrl } from "@/lib/cloudinary";
+import { cdnUrl, blurDataUrl } from "@/lib/cloudinary";
 
 interface ProductGalleryProps {
   images: string[];
@@ -42,6 +42,8 @@ export default function ProductGallery({ images, productName, tag, fallbackBg }:
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
+                  placeholder="blur"
+                  blurDataURL={blurDataUrl}
                 />
               </motion.div>
             </AnimatePresence>
@@ -81,7 +83,7 @@ export default function ProductGallery({ images, productName, tag, fallbackBg }:
                     : "opacity-55 hover:opacity-100"
                 }`}
               >
-                <Image src={cdnUrl(src)} alt={`${productName} view ${i + 1}`} fill className="object-cover" sizes="64px" />
+                <Image src={cdnUrl(src)} alt={`${productName} view ${i + 1}`} fill className="object-cover" sizes="64px" placeholder="blur" blurDataURL={blurDataUrl} />
               </button>
             ))}
           </div>
@@ -125,6 +127,8 @@ export default function ProductGallery({ images, productName, tag, fallbackBg }:
                 className="object-contain"
                 sizes="560px"
                 priority
+                placeholder="blur"
+                blurDataURL={blurDataUrl}
               />
             </motion.div>
 
