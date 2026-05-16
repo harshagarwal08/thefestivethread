@@ -1,6 +1,5 @@
 const BASE = "https://apiv2.shiprocket.in/v1/external";
 
-// Token is cached in memory — refreshed on 401 or expiry
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getToken(): Promise<string> {
@@ -26,6 +25,7 @@ async function getToken(): Promise<string> {
   cachedToken = { value: data.token, expiresAt: Date.now() + 23 * 60 * 60 * 1000 };
   return cachedToken.value;
 }
+
 
 async function srFetch(path: string, body: object, retried = false): Promise<Response> {
   const token = await getToken();
@@ -86,7 +86,7 @@ export async function createShiprocketOrder(params: ShiprocketOrderParams): Prom
   const body = {
     order_id: params.orderRef,
     order_date: params.orderDate,
-    pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION ?? "Primary",
+    pickup_location: "Primary",
     channel_id: "",
     comment: "",
     billing_customer_name: params.buyerName,
@@ -121,7 +121,7 @@ export async function createShiprocketOrder(params: ShiprocketOrderParams): Prom
   };
 }
 
-export async function getShippingRate(deliveryPincode: string, weightKg: number): Promise<number> {
+export async function getShippingRate(deliveryPincode: string, weightKg: number, retried = false): Promise<number> {
   const token = await getToken();
   const pickupPincode = process.env.SHIPROCKET_PICKUP_PINCODE!;
 
@@ -138,7 +138,8 @@ export async function getShippingRate(deliveryPincode: string, weightKg: number)
 
   if (res.status === 401) {
     cachedToken = null;
-    return getShippingRate(deliveryPincode, weightKg);
+    if (retried) throw new Error("Shiprocket auth failed after token refresh");
+    return getShippingRate(deliveryPincode, weightKg, true);
   }
 
   const data = await res.json();

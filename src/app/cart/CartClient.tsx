@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart, itemKey, type HamperOptions } from "@/lib/cart";
@@ -90,6 +90,7 @@ export default function CartClient() {
   const [address, setAddress] = useState<Address>(emptyAddress);
   const [errors, setErrors] = useState<Partial<Address>>({});
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const paymentStarted = useRef(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [shipping, setShipping] = useState<number | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
@@ -112,6 +113,16 @@ export default function CartClient() {
   const subtotal = itemsWithProducts.reduce((s, x) => s + lineTotal(x), 0);
   const hasHamper = items.some((it) => !!it.hamper);
   const total = subtotal + (shipping ?? 0);
+
+  // Refetch shipping when hamper status changes (weight changes 0.15→0.75kg)
+  const prevHasHamper = useRef(hasHamper);
+  useEffect(() => {
+    if (prevHasHamper.current !== hasHamper && /^\d{6}$/.test(address.pincode)) {
+      fetchShipping(address.pincode, subtotal, hasHamper);
+    }
+    prevHasHamper.current = hasHamper;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasHamper]);
 
   const setAddr = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const updated = { ...address, [e.target.name]: e.target.value };
@@ -158,6 +169,8 @@ export default function CartClient() {
 
   const placeOrder = async () => {
     if (!validate()) return;
+    if (paymentStarted.current) return; // prevent duplicate orders on double-click
+    paymentStarted.current = true;
     setPaymentError(null);
     setPaymentLoading(true);
 
@@ -180,6 +193,7 @@ export default function CartClient() {
 
       if (!res.ok || !data.paymentUrl) {
         setPaymentError(data.error ?? "Something went wrong. Please try again.");
+        paymentStarted.current = false;
         return;
       }
 
@@ -204,6 +218,7 @@ export default function CartClient() {
       window.location.href = data.paymentUrl;
     } catch {
       setPaymentError("Network error. Please check your connection and try again.");
+      paymentStarted.current = false;
     } finally {
       setPaymentLoading(false);
     }

@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPaymentRequest } from "@/lib/instamojo";
 import { getProductById } from "@/lib/products";
 import { getBox, getChocolate } from "@/lib/hamperOptions";
+import { getShippingRate } from "@/lib/shiprocket";
+import { kv } from "@/lib/kv";
 
 export const runtime = "nodejs";
 
 const FREE_SHIPPING_THRESHOLD = 499;
-const SHIPPING_COST = 60;
+const ORDER_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 interface IncomingItem {
   productId: string;
@@ -36,7 +38,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing items or address" }, { status: 400 });
     }
 
-    // Re-derive all prices server-side — never trust client-sent prices
+    // Validate address fields
+    if (!address.name?.trim() || !address.phone?.trim() || !address.line1?.trim() ||
+        !address.city?.trim() || !address.state?.trim() || !/^\d{6}$/.test(address.pincode)) {
+      return NextResponse.json({ error: "Invalid address" }, { status: 400 });
+    }
+
+    // Re-derive all prices server-side
     let subtotal = 0;
     const validatedItems: IncomingItem[] = [];
 
@@ -50,44 +58,58 @@ export async function POST(req: NextRequest) {
       }
 
       let linePrice = product.price;
-
       if (item.hamper) {
-        const box = getBox(item.hamper.boxId as never);
-        const choco = getChocolate(item.hamper.chocolateId as never);
-        linePrice += box.price + choco.price;
+        linePrice += getBox(item.hamper.boxId as never).price + getChocolate(item.hamper.chocolateId as never).price;
       }
 
       subtotal += linePrice * item.quantity;
       validatedItems.push(item);
     }
 
-    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-    const total = subtotal + shipping;
+    // Compute shipping server-side via Shiprocket — same logic as /api/shipping-rate
+    let shipping = 0;
+    if (subtotal < FREE_SHIPPING_THRESHOLD) {
+      const hasHamper = validatedItems.some((it) => !!it.hamper);
+      const weightKg = hasHamper ? 0.75 : 0.15;
+      try {
+        shipping = await getShippingRate(address.pincode, weightKg);
+      } catch {
+        return NextResponse.json({ error: "Unable to calculate shipping for this pincode. Please check the pincode and try again." }, { status: 422 });
+      }
+    }
 
-    // Encode order data into remarks — returned verbatim in webhook
+    const total = subtotal + shipping;
+    const orderRef = `TFT-${Date.now()}`;
+
+    // Build full order record
     const orderData = {
-      n: address.name,
-      ph: address.phone,
-      e: address.email || "",
-      a: address.line1,
-      c: address.city,
-      s: address.state,
-      p: address.pincode,
-      nt: address.notes || "",
-      i: validatedItems.map((it) => ({
-        id: it.productId,
-        q: it.quantity,
-        ...(it.variant ? { v: it.variant } : {}),
-        ...(it.hamper ? { h: `${it.hamper.boxId}::${it.hamper.chocolateId}` } : {}),
-      })),
-      sub: subtotal,
-      sh: shipping,
-      tot: total,
+      orderRef,
+      address,
+      items: validatedItems.map((it) => {
+        const product = getProductById(it.productId)!;
+        const hamperAdd = it.hamper
+          ? getBox(it.hamper.boxId as never).price + getChocolate(it.hamper.chocolateId as never).price
+          : 0;
+        return {
+          id: it.productId,
+          name: product.name,
+          quantity: it.quantity,
+          variant: it.variant,
+          hamper: it.hamper,
+          lineTotal: (product.price + hamperAdd) * it.quantity,
+        };
+      }),
+      subtotal,
+      shipping,
+      total,
+      status: "PENDING",
+      createdAt: new Date().toISOString(),
     };
 
-    const remarks = JSON.stringify(orderData);
-    const orderRef = `TFT-${Date.now()}`;
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://thefestivethread.com";
+    // Save to KV with 30-day TTL — webhook may fire with delay, and we need it for success page
+    await kv.set(`order:${orderRef}`, orderData, { ex: ORDER_TTL_SECONDS });
+
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thefestivethread.vercel.app";
 
     const { paymentUrl } = await createPaymentRequest({
       amount: total,
@@ -95,8 +117,8 @@ export async function POST(req: NextRequest) {
       email: address.email || "",
       phone: address.phone,
       purpose: orderRef,
-      remarks,
-      redirectUrl: `${origin}/order/success`,
+      remarks: orderRef,
+      redirectUrl: `${origin}/order/success?ref=${orderRef}`,
       webhookUrl: `${origin}/api/webhooks/instamojo`,
     });
 
