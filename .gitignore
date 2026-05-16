@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# stray root-level files
+/rakhis2026/
+/TFTLogo.png
+/plan.txt
+*.pdf

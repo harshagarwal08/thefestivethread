@@ -1,26 +1,87 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-cormorant);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+
+  /* Brand colours */
+  --color-cream: #F9F5EF;
+  --color-cream-dark: #EDE5D8;
+  --color-cream-mid: #F3EDE4;
+  --color-terracotta: #B5541E;
+  --color-terracotta-light: #D4713A;
+  --color-gold: #C9972C;
+  --color-gold-light: #E8B84B;
+  --color-brown-dark: #1C1009;
+  --color-brown: #4A2C1A;
+  --color-taupe: #8A7968;
+  --color-taupe-light: #B5A898;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #F9F5EF;
+  --foreground: #1C1009;
+  --card: #F3EDE4;
+  --card-foreground: #1C1009;
+  --popover: #F9F5EF;
+  --popover-foreground: #1C1009;
+  --primary: #1C1009;
+  --primary-foreground: #F9F5EF;
+  --secondary: #EDE5D8;
+  --secondary-foreground: #1C1009;
+  --muted: #EDE5D8;
+  --muted-foreground: #8A7968;
+  --accent: #B5541E;
+  --accent-foreground: #F9F5EF;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #DDD4C4;
+  --input: #DDD4C4;
+  --ring: #B5541E;
+  --radius: 0px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-weight: 300;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-cormorant), Georgia, serif;
+    font-weight: 400;
+    line-height: 1.1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .font-display {
+    font-family: var(--font-cormorant), Georgia, serif;
+  }
 }
