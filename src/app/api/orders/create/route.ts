@@ -17,6 +17,19 @@ interface IncomingItem {
   hamper?: { boxId: string; chocolateId: string };
 }
 
+interface IncomingHamperRakhi {
+  productId: string;
+  quantity: number;
+  variant?: string;
+}
+
+interface IncomingHamperItem {
+  hamperId: string;
+  boxId: string;
+  chocolateId: string;
+  rakhis: IncomingHamperRakhi[];
+}
+
 interface Address {
   name: string;
   phone: string;
@@ -31,10 +44,11 @@ interface Address {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const items: IncomingItem[] = body.items;
+    const items: IncomingItem[] = body.items ?? [];
+    const hamperItems: IncomingHamperItem[] = body.hamperItems ?? [];
     const address: Address = body.address;
 
-    if (!items?.length || !address) {
+    if ((!items?.length && !hamperItems?.length) || !address) {
       return NextResponse.json({ error: "Missing items or address" }, { status: 400 });
     }
 
@@ -66,10 +80,26 @@ export async function POST(req: NextRequest) {
       validatedItems.push(item);
     }
 
+    // Price hamper items server-side
+    const validatedHamperItems: IncomingHamperItem[] = [];
+    for (const h of hamperItems) {
+      const box = getBox(h.boxId as never);
+      const choco = getChocolate(h.chocolateId as never);
+      let hamperTotal = box.price + choco.price;
+      for (const r of h.rakhis) {
+        const product = getProductById(r.productId);
+        if (!product) return NextResponse.json({ error: `Unknown product: ${r.productId}` }, { status: 400 });
+        if (r.quantity < 1 || r.quantity > 20) return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
+        hamperTotal += product.price * r.quantity;
+      }
+      subtotal += hamperTotal;
+      validatedHamperItems.push(h);
+    }
+
     // Compute shipping server-side via Shiprocket — same logic as /api/shipping-rate
     let shipping = 0;
     if (subtotal < FREE_SHIPPING_THRESHOLD) {
-      const hasHamper = validatedItems.some((it) => !!it.hamper);
+      const hasHamper = validatedItems.some((it) => !!it.hamper) || validatedHamperItems.length > 0;
       const weightKg = hasHamper ? 0.75 : 0.15;
       try {
         shipping = await getShippingRate(address.pincode, weightKg);
@@ -85,6 +115,23 @@ export async function POST(req: NextRequest) {
     const orderData = {
       orderRef,
       address,
+      hamperItems: validatedHamperItems.map((h) => {
+        const box = getBox(h.boxId as never);
+        const choco = getChocolate(h.chocolateId as never);
+        const rakhisTotal = h.rakhis.reduce((s, r) => s + (getProductById(r.productId)?.price ?? 0) * r.quantity, 0);
+        return {
+          hamperId: h.hamperId,
+          boxId: h.boxId,
+          boxLabel: box.label,
+          chocolateId: h.chocolateId,
+          chocolateLabel: choco.label,
+          rakhis: h.rakhis.map((r) => {
+            const p = getProductById(r.productId)!;
+            return { productId: r.productId, name: p.name, quantity: r.quantity, variant: r.variant, lineTotal: p.price * r.quantity };
+          }),
+          lineTotal: box.price + choco.price + rakhisTotal,
+        };
+      }),
       items: validatedItems.map((it) => {
         const product = getProductById(it.productId)!;
         const hamperAdd = it.hamper

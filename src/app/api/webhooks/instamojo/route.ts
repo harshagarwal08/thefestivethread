@@ -18,6 +18,12 @@ interface StoredOrder {
     variant?: string; hamper?: { boxId: string; chocolateId: string };
     lineTotal: number;
   }>;
+  hamperItems?: Array<{
+    hamperId: string; boxId: string; boxLabel: string;
+    chocolateId: string; chocolateLabel: string;
+    rakhis: Array<{ productId: string; name: string; quantity: number; variant?: string; lineTotal: number }>;
+    lineTotal: number;
+  }>;
   subtotal: number;
   shipping: number;
   total: number;
@@ -60,20 +66,30 @@ export async function POST(req: NextRequest) {
     await kv.set(`order:${orderRef}`, { ...order, status: "PAID", paymentId: payment_id, paidAt }, { ex: 60 * 60 * 24 * 30 });
 
     // Build Shiprocket line items with full prices
-    const srItems = order.items.map((it) => {
-      const hamperAdd = it.hamper
-        ? getBox(it.hamper.boxId as never).price + getChocolate(it.hamper.chocolateId as never).price
-        : 0;
-      const product = getProductById(it.id);
-      return {
-        name: it.name,
-        sku: it.id,
-        units: it.quantity,
-        selling_price: (product?.price ?? 0) + hamperAdd,
-      };
-    });
+    const srItems = [
+      ...order.items.map((it) => {
+        const hamperAdd = it.hamper
+          ? getBox(it.hamper.boxId as never).price + getChocolate(it.hamper.chocolateId as never).price
+          : 0;
+        const product = getProductById(it.id);
+        return {
+          name: it.name,
+          sku: it.id,
+          units: it.quantity,
+          selling_price: (product?.price ?? 0) + hamperAdd,
+        };
+      }),
+      ...(order.hamperItems ?? []).flatMap((h) =>
+        h.rakhis.map((r) => ({
+          name: `${r.name} (Hamper: ${h.boxLabel}/${h.chocolateLabel})`,
+          sku: r.productId,
+          units: r.quantity,
+          selling_price: r.lineTotal / r.quantity,
+        }))
+      ),
+    ];
 
-    const hasHamper = order.items.some((it) => !!it.hamper);
+    const hasHamper = order.items.some((it) => !!it.hamper) || (order.hamperItems?.length ?? 0) > 0;
     const now = new Date();
     const orderDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 

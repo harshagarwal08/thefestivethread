@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { cdnUrl } from "@/lib/cloudinary";
-import { useCart, itemKey, type HamperOptions } from "@/lib/cart";
+import { useCart, itemKey, type HamperOptions, type HamperCartItem } from "@/lib/cart";
 import { getProductById, type ProductVariant } from "@/lib/products";
 import { boxes, chocolates, getBox, getChocolate, type BoxId, type ChocolateId } from "@/lib/hamperOptions";
 
@@ -86,7 +86,7 @@ function HamperPicker({ current, onSave, onRemove }: {
 }
 
 export default function CartClient() {
-  const { items, count, updateQty, removeItem, setHamper, clearCart, getKey } = useCart();
+  const { items, hamperItems, count, updateQty, removeItem, setHamper, removeHamper, clearCart, getKey } = useCart();
   const [expandedHamper, setExpandedHamper] = useState<string | null>(null);
   const [address, setAddress] = useState<Address>(emptyAddress);
   const [errors, setErrors] = useState<Partial<Address>>({});
@@ -111,8 +111,20 @@ export default function CartClient() {
     return (base + hamperAdd) * item.item.quantity;
   };
 
-  const subtotal = itemsWithProducts.reduce((s, x) => s + lineTotal(x), 0);
-  const hasHamper = items.some((it) => !!it.hamper);
+  const hamperLineTotal = (h: HamperCartItem) => {
+    const box = getBox(h.boxId);
+    const choco = getChocolate(h.chocolateId);
+    const rakhisTotal = h.rakhis.reduce((s, r) => {
+      const p = getProductById(r.productId);
+      return s + (p?.price ?? 0) * r.quantity;
+    }, 0);
+    return box.price + choco.price + rakhisTotal;
+  };
+
+  const standaloneSubtotal = itemsWithProducts.reduce((s, x) => s + lineTotal(x), 0);
+  const hamperSubtotal = hamperItems.reduce((s, h) => s + hamperLineTotal(h), 0);
+  const subtotal = standaloneSubtotal + hamperSubtotal;
+  const hasHamper = items.some((it) => !!it.hamper) || hamperItems.length > 0;
   const total = subtotal + (shipping ?? 0);
 
   // Refetch shipping when hamper status changes (weight changes 0.15→0.75kg)
@@ -187,6 +199,12 @@ export default function CartClient() {
             ...(it.variant ? { variant: it.variant } : {}),
             ...(it.hamper ? { hamper: it.hamper } : {}),
           })),
+          hamperItems: hamperItems.map((h) => ({
+            hamperId: h.hamperId,
+            boxId: h.boxId,
+            chocolateId: h.chocolateId,
+            rakhis: h.rakhis,
+          })),
         }),
       });
 
@@ -255,6 +273,38 @@ export default function CartClient() {
             Clear all
           </button>
         </div>
+
+        {hamperItems.map((h) => {
+          const box = getBox(h.boxId);
+          const choco = getChocolate(h.chocolateId);
+          return (
+            <div key={h.hamperId} className="border border-[#DDD4C4] bg-white p-4 md:p-5">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <p className="font-display text-[1.05rem] text-brown-dark">Rakhi Hamper</p>
+                  <p className="text-[0.7rem] text-taupe mt-0.5">{box.label} · {choco.label} · Roli Chawal · Card</p>
+                </div>
+                <button onClick={() => removeHamper(h.hamperId)} className="shrink-0 text-taupe-light hover:text-terracotta transition-colors text-lg leading-none" aria-label="Remove">×</button>
+              </div>
+              <div className="flex flex-col gap-1.5 mb-3">
+                {h.rakhis.map((r, i) => {
+                  const p = getProductById(r.productId);
+                  if (!p) return null;
+                  return (
+                    <div key={i} className="flex justify-between text-[0.78rem]">
+                      <span className="text-brown">{p.name} × {r.quantity}</span>
+                      <span className="text-brown-dark font-medium">₹{p.price * r.quantity}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between text-[0.78rem] border-t border-cream-dark pt-2">
+                <span className="text-taupe">Hamper total</span>
+                <span className="font-display text-[1.05rem] text-brown-dark">₹{hamperLineTotal(h)}</span>
+              </div>
+            </div>
+          );
+        })}
 
         {itemsWithProducts.map(({ item, product, key }) => {
           const hamperExpanded = expandedHamper === key;
@@ -425,6 +475,12 @@ export default function CartClient() {
             <p className="font-display text-xl text-[#1C1009] mt-0.5">Order Total</p>
           </div>
           <div className="px-5 py-5 flex flex-col gap-3">
+            {hamperItems.map((h) => (
+              <div key={h.hamperId} className="flex justify-between gap-3 text-[0.8rem]">
+                <span className="text-[#8A7968] truncate">Rakhi Hamper ({h.rakhis.length} rakhi{h.rakhis.length !== 1 ? "s" : ""})</span>
+                <span className="text-[#1C1009] font-medium shrink-0">₹{hamperLineTotal(h)}</span>
+              </div>
+            ))}
             {itemsWithProducts.map(({ item, product, key }) => (
               <div key={key} className="flex justify-between gap-3 text-[0.8rem]">
                 <span className="text-[#8A7968] truncate">
