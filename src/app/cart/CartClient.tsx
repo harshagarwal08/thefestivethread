@@ -7,7 +7,7 @@ import { useCart, itemKey, type HamperOptions } from "@/lib/cart";
 import { getProductById, type ProductVariant } from "@/lib/products";
 import { boxes, chocolates, getBox, getChocolate, type BoxId, type ChocolateId } from "@/lib/hamperOptions";
 
-const INSTAMOJO_URL = process.env.NEXT_PUBLIC_INSTAMOJO_URL ?? "https://www.instamojo.com/@thefestivethread";
+const FREE_SHIPPING_THRESHOLD = 499;
 
 interface Address {
   name: string;
@@ -89,11 +89,11 @@ export default function CartClient() {
   const [expandedHamper, setExpandedHamper] = useState<string | null>(null);
   const [address, setAddress] = useState<Address>(emptyAddress);
   const [errors, setErrors] = useState<Partial<Address>>({});
-  const [placed, setPlaced] = useState(false);
-  const [orderSummary, setOrderSummary] = useState<string>("");
-
-  const setAddr = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setAddress((a) => ({ ...a, [e.target.name]: e.target.value }));
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [shipping, setShipping] = useState<number | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
 
   const itemsWithProducts = items.map((item) => ({
     item,
@@ -110,8 +110,39 @@ export default function CartClient() {
   };
 
   const subtotal = itemsWithProducts.reduce((s, x) => s + lineTotal(x), 0);
-  const shipping = subtotal > 0 ? 0 : 0; // free shipping shown, can add logic
-  const total = subtotal + shipping;
+  const hasHamper = items.some((it) => !!it.hamper);
+  const total = subtotal + (shipping ?? 0);
+
+  const setAddr = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const updated = { ...address, [e.target.name]: e.target.value };
+    setAddress(updated);
+
+    // Fetch shipping rate when pincode is complete
+    if (e.target.name === "pincode" && /^\d{6}$/.test(e.target.value)) {
+      fetchShipping(e.target.value, subtotal, hasHamper);
+    }
+    if (e.target.name === "pincode" && e.target.value.length < 6) {
+      setShipping(null);
+      setShippingError(null);
+    }
+  };
+
+  const fetchShipping = async (pincode: string, sub: number, hamper: boolean) => {
+    if (sub >= FREE_SHIPPING_THRESHOLD) { setShipping(0); return; }
+    setShippingLoading(true);
+    setShippingError(null);
+    try {
+      const res = await fetch(`/api/shipping-rate?pincode=${pincode}&subtotal=${sub}&hasHamper=${hamper ? 1 : 0}`);
+      const data = await res.json();
+      if (!res.ok) { setShippingError(data.error ?? "Unable to calculate shipping"); setShipping(null); }
+      else setShipping(data.shipping);
+    } catch {
+      setShippingError("Unable to calculate shipping");
+      setShipping(null);
+    } finally {
+      setShippingLoading(false);
+    }
+  };
 
   const validate = () => {
     const e: Partial<Address> = {};
@@ -125,99 +156,58 @@ export default function CartClient() {
     return Object.keys(e).length === 0;
   };
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
     if (!validate()) return;
+    setPaymentError(null);
+    setPaymentLoading(true);
 
-    const lines: string[] = ["New Order — The Festive Thread\n"];
+    try {
+      const res = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address,
+          items: items.map((it) => ({
+            productId: it.productId,
+            quantity: it.quantity,
+            ...(it.variant ? { variant: it.variant } : {}),
+            ...(it.hamper ? { hamper: it.hamper } : {}),
+          })),
+        }),
+      });
 
-    lines.push("ITEMS:");
-    itemsWithProducts.forEach(({ item, product, key }) => {
-      const variantLabel = item.variant
-        ? ` [${product!.variants?.find((v: ProductVariant) => v.value === item.variant)?.label ?? item.variant}]`
-        : "";
-      const hamperLine = item.hamper
-        ? ` (Hamper: ${getBox(item.hamper.boxId).label} + ${getChocolate(item.hamper.chocolateId).label} + Roli Chawal + Card)`
-        : "";
-      lines.push(`• ${product!.name}${variantLabel}${hamperLine} × ${item.quantity} — ₹${lineTotal({ item, product, key })}`);
-    });
+      const data = await res.json();
 
-    lines.push(`\nORDER TOTAL: ₹${total}`);
-    lines.push(`\nDELIVERY ADDRESS:`);
-    lines.push(`Name: ${address.name}`);
-    lines.push(`Phone: ${address.phone}`);
-    if (address.email) lines.push(`Email: ${address.email}`);
-    lines.push(`Address: ${address.line1}`);
-    lines.push(`${address.city}, ${address.state} — ${address.pincode}`);
-    if (address.notes) lines.push(`Notes: ${address.notes}`);
+      if (!res.ok || !data.paymentUrl) {
+        setPaymentError(data.error ?? "Something went wrong. Please try again.");
+        return;
+      }
 
-    const summary = lines.join("\n");
-    setOrderSummary(summary);
-    window.open(INSTAMOJO_URL, "_blank");
-    setPlaced(true);
+      // Persist order for the success page before cart is cleared
+      sessionStorage.setItem("tft_last_order", JSON.stringify({
+        orderRef: data.orderRef,
+        address,
+        items: itemsWithProducts.map(({ item, product }) => ({
+          id: item.productId,
+          name: product!.name,
+          quantity: item.quantity,
+          variant: item.variant,
+          hamper: item.hamper,
+          lineTotal: lineTotal({ item, product, key: "" }),
+        })),
+        subtotal,
+        shipping: data.shipping,
+        total: data.total,
+      }));
+
+      clearCart();
+      window.location.href = data.paymentUrl;
+    } catch {
+      setPaymentError("Network error. Please check your connection and try again.");
+    } finally {
+      setPaymentLoading(false);
+    }
   };
-
-  const waLink = orderSummary
-    ? `https://wa.me/919883088575?text=${encodeURIComponent(orderSummary)}`
-    : null;
-
-  if (placed) {
-    return (
-      <div className="max-w-[560px] mx-auto px-4 md:px-10 py-20 text-center flex flex-col items-center gap-5">
-        <div className="w-6 h-px bg-[#C9972C]/60 mx-auto" />
-
-        {/* Step 1 */}
-        <div className="w-8 h-8 rounded-full bg-[#1C1009] text-[#F9F5EF] flex items-center justify-center text-[0.7rem] font-medium">1</div>
-        <h2 className="font-display text-[1.8rem] text-[#1C1009] leading-tight">Complete payment<br />on Instamojo</h2>
-        <p className="text-[#8A7968] leading-[1.8] text-[0.88rem] max-w-[340px]">
-          A new tab has opened with the payment link. Finish the payment there, then come back here.
-        </p>
-        <a
-          href={INSTAMOJO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[0.68rem] tracking-[0.1em] uppercase text-[#B5541E] hover:text-[#1C1009] transition-colors"
-        >
-          Reopen payment link →
-        </a>
-
-        <div className="w-full h-px bg-[#EDE5D8] my-2" />
-
-        {/* Step 2 */}
-        <div className="w-8 h-8 rounded-full bg-[#1C1009] text-[#F9F5EF] flex items-center justify-center text-[0.7rem] font-medium">2</div>
-        <h2 className="font-display text-[1.8rem] text-[#1C1009] leading-tight">Send us your<br />order details</h2>
-        <p className="text-[#8A7968] leading-[1.8] text-[0.88rem] max-w-[360px]">
-          Once payment is done, tap below to WhatsApp us your order and delivery address. We&apos;ll confirm and dispatch within 1–2 days.
-        </p>
-
-        {waLink && (
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full max-w-xs text-center text-[0.72rem] font-medium tracking-[0.12em] uppercase py-4 bg-[#25D366] text-white hover:bg-[#1ebe5d] transition-colors"
-          >
-            Send Order on WhatsApp
-          </a>
-        )}
-
-        <p className="text-[0.65rem] text-[#B5A898] max-w-[300px] leading-[1.7]">
-          Your order summary and address will be pre-filled in the message.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <Link href="/shop" className="text-[0.7rem] tracking-[0.12em] uppercase px-7 py-3.5 bg-[#1C1009] text-[#F9F5EF] hover:bg-[#B5541E] transition-colors">
-            Continue Shopping
-          </Link>
-          <button
-            onClick={() => { clearCart(); setPlaced(false); setAddress(emptyAddress); setOrderSummary(""); }}
-            className="text-[0.7rem] tracking-[0.12em] uppercase px-7 py-3.5 border border-[#DDD4C4] text-[#8A7968] hover:border-[#1C1009] hover:text-[#1C1009] transition-colors"
-          >
-            Clear Cart
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   if (count === 0) {
     return (
@@ -429,20 +419,44 @@ export default function CartClient() {
             ))}
             <div className="border-t border-[#EDE5D8] pt-3 flex justify-between text-[0.8rem]">
               <span className="text-[#8A7968]">Shipping</span>
-              <span className="text-[#4A2C1A] font-medium">Free</span>
+              <span className="text-[#4A2C1A] font-medium">
+                {subtotal >= FREE_SHIPPING_THRESHOLD
+                  ? "Free"
+                  : shippingLoading
+                  ? "Calculating…"
+                  : shipping === null
+                  ? <span className="text-taupe-light font-normal">Enter pincode</span>
+                  : shipping === 0
+                  ? "Free"
+                  : `₹${shipping}`}
+              </span>
             </div>
+            {shippingError && (
+              <p className="text-[0.62rem] text-red-500 leading-[1.6]">{shippingError}</p>
+            )}
+            {!shippingError && subtotal < FREE_SHIPPING_THRESHOLD && (
+              <p className="text-[0.62rem] text-taupe-light leading-[1.6]">
+                Free shipping on orders above ₹{FREE_SHIPPING_THRESHOLD}
+              </p>
+            )}
             <div className="border-t border-[#EDE5D8] pt-3 flex justify-between items-baseline">
               <span className="text-[0.68rem] tracking-[0.1em] uppercase font-medium text-[#4A2C1A]">Total</span>
-              <span className="font-display text-[1.5rem] text-[#B5541E]">₹{total}</span>
+              <span className="font-display text-[1.5rem] text-[#B5541E]">
+                {shipping === null && subtotal < FREE_SHIPPING_THRESHOLD ? `₹${subtotal}+` : `₹${total}`}
+              </span>
             </div>
           </div>
           <div className="px-5 pb-5 flex flex-col gap-3">
             <button
               onClick={placeOrder}
-              className="w-full text-[0.7rem] font-medium tracking-[0.12em] uppercase py-4 bg-[#1C1009] text-[#F9F5EF] hover:bg-[#B5541E] transition-colors"
+              disabled={paymentLoading || shippingLoading || (shipping === null && subtotal < FREE_SHIPPING_THRESHOLD)}
+              className="w-full text-[0.7rem] font-medium tracking-[0.12em] uppercase py-4 bg-[#1C1009] text-[#F9F5EF] hover:bg-[#B5541E] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Proceed to Payment
+              {paymentLoading ? "Redirecting to Payment…" : "Proceed to Payment"}
             </button>
+            {paymentError && (
+              <p className="text-[0.65rem] text-red-500 text-center leading-[1.6]">{paymentError}</p>
+            )}
             <p className="text-[0.63rem] text-[#8A7968] text-center leading-[1.6]">
               Secure checkout via Instamojo. You&apos;ll receive an order confirmation by email.
             </p>

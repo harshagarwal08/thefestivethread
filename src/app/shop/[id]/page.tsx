@@ -61,7 +61,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <h1 className="font-display font-light text-[#1C1009] mb-2 leading-tight" style={{ fontSize: "clamp(1.8rem, 3vw, 2.75rem)" }}>
             {product.name}
           </h1>
-          <p className="font-display text-[1.6rem] md:text-[1.75rem] font-light text-[#B5541E] mb-5">₹{product.price}</p>
+          <div className="flex items-baseline gap-3 mb-5">
+            <p className="font-display text-[1.6rem] md:text-[1.75rem] font-light text-terracotta">₹{product.price}</p>
+            <span className="text-[0.6rem] tracking-[0.14em] uppercase text-taupe-light">{product.id.toUpperCase()}</span>
+          </div>
 
           <div className="h-px bg-[#EDE5D8] mb-5" />
           <p className="text-[#8A7968] leading-[1.8] text-[0.88rem] md:text-[0.92rem] mb-7">{product.description}</p>

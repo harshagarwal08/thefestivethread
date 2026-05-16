@@ -65,7 +65,10 @@ export default function ProductCard({ product }: { product: Product }) {
       <h3 className="font-display text-lg text-[#1C1009] mb-1 leading-snug group-hover:text-[#B5541E] transition-colors">
         {product.name}
       </h3>
-      <p className="text-[#B5541E] text-sm">₹{product.price}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-terracotta text-sm">₹{product.price}</p>
+        <p className="text-[0.6rem] tracking-[0.12em] uppercase text-taupe-light">{product.id.toUpperCase()}</p>
+      </div>
     </Link>
   );
 }
