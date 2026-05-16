@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { cdnUrl } from "@/lib/cloudinary";
 import { useCart, itemKey, type HamperOptions } from "@/lib/cart";
 import { getProductById, type ProductVariant } from "@/lib/products";
 import { boxes, chocolates, getBox, getChocolate, type BoxId, type ChocolateId } from "@/lib/hamperOptions";
@@ -266,7 +267,7 @@ export default function CartClient() {
                 {/* Image */}
                 <div className="shrink-0 w-20 h-24 md:w-24 md:h-28 relative overflow-hidden bg-[#EDE5D8]">
                   {product!.image ? (
-                    <Image src={product!.image} alt={product!.name} fill className="object-cover" sizes="96px" />
+                    <Image src={cdnUrl(product!.image)} alt={product!.name} fill className="object-cover" sizes="96px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[#8A7968] text-xs">No photo</div>
                   )}
