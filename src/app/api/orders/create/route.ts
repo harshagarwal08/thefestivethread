@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPaymentRequest } from "@/lib/instamojo";
 import { getProductById } from "@/lib/products";
 import { getBox, getChocolate } from "@/lib/hamperOptions";
-import { getShippingRate } from "@/lib/shiprocket";
 import { kv } from "@/lib/kv";
 
 export const runtime = "nodejs";
 
 const FREE_SHIPPING_THRESHOLD = 499;
+const FLAT_SHIPPING_RATE = 99;
 const ORDER_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 interface IncomingItem {
@@ -96,17 +96,7 @@ export async function POST(req: NextRequest) {
       validatedHamperItems.push(h);
     }
 
-    // Compute shipping server-side via Shiprocket — same logic as /api/shipping-rate
-    let shipping = 0;
-    if (subtotal < FREE_SHIPPING_THRESHOLD) {
-      const hasHamper = validatedItems.some((it) => !!it.hamper) || validatedHamperItems.length > 0;
-      const weightKg = hasHamper ? 0.75 : 0.15;
-      try {
-        shipping = await getShippingRate(address.pincode, weightKg);
-      } catch {
-        return NextResponse.json({ error: "Unable to calculate shipping for this pincode. Please check the pincode and try again." }, { status: 422 });
-      }
-    }
+    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE;
 
     const total = subtotal + shipping;
     const orderRef = `TFT-${Date.now()}`;
