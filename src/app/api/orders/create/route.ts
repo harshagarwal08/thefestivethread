@@ -6,7 +6,7 @@ import { kv } from "@/lib/kv";
 
 export const runtime = "nodejs";
 
-const FREE_SHIPPING_THRESHOLD = 499;
+const FREE_SHIPPING_THRESHOLD = 1; // TEMP: lowered for testing — revert to 499
 const FLAT_SHIPPING_RATE = 99;
 const ORDER_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 

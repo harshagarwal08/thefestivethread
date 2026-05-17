@@ -8,7 +8,7 @@ import { useCart, itemKey, type HamperOptions, type HamperCartItem } from "@/lib
 import { getProductById, type ProductVariant } from "@/lib/products";
 import { boxes, chocolates, getBox, getChocolate, type BoxId, type ChocolateId } from "@/lib/hamperOptions";
 
-const FREE_SHIPPING_THRESHOLD = 499;
+const FREE_SHIPPING_THRESHOLD = 1; // TEMP: lowered for testing — revert to 499
 
 interface Address {
   name: string;

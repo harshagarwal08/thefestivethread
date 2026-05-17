@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const FREE_SHIPPING_THRESHOLD = 499;
+const FREE_SHIPPING_THRESHOLD = 1; // TEMP: lowered for testing — revert to 499
 const FLAT_SHIPPING_RATE = 99;
 
 export async function GET(req: NextRequest) {

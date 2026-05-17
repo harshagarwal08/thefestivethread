@@ -45,6 +45,9 @@ const K = (n: string) => ({
 });
 
 export const products: Product[] = [
+  // Test product (remove after testing)
+  { id: "test-01", category: "single", name: "Test Rakhi (₹1)", price: 1, image: "/images/rakhis/01.jpg", description: "Test product — do not purchase." },
+
   // Single Rakhis (26)
   { id: "sr-01", category: "single", name: "Golden Paisley", price: 69, ...R("01"), description: "Antique gold paisley medallion with kundan detailing and pearl bead accents on a classic red thread." },
   { id: "sr-02", category: "single", name: "Triple Gold", price: 59, ...R("02"), description: "Three stacked gold disc medallions lined up on a twisted saffron-red thread — bold, symmetrical, understated." },
