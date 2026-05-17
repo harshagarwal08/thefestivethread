@@ -185,7 +185,9 @@ export async function POST(req: NextRequest) {
       // return NextResponse.json({ error: "Invalid MAC" }, { status: 400 });
     }
 
-    const { status, payment_id, purpose: orderRef } = payload;
+    const { status, payment_id, purpose: purposeRaw } = payload;
+    // Purpose is set as "The Festive Thread — TFT-xxx", extract the order ref
+    const orderRef = purposeRaw?.match(/(TFT-\d+)/)?.[1] ?? purposeRaw;
 
     if (status !== "Credit") return NextResponse.json({ ok: true });
 
