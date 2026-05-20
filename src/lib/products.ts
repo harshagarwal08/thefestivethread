@@ -48,7 +48,7 @@ const K = (n: string) => ({
 
 export const products: Product[] = [
   // Single Rakhis (26)
-  { id: "sr-01", category: "single", name: "Golden Paisley",    price: 10, mrp: 190, ...R("01"), description: "Antique gold paisley medallion with kundan detailing and pearl bead accents on a classic red thread." },
+  { id: "sr-01", category: "single", name: "Golden Paisley",    price: 170, mrp: 190, ...R("01"), description: "Antique gold paisley medallion with kundan detailing and pearl bead accents on a classic red thread." },
   { id: "sr-02", category: "single", name: "Triple Gold",       price: 160, mrp: 180, ...R("02"), description: "Three stacked gold disc medallions lined up on a twisted saffron-red thread — bold, symmetrical, understated." },
   { id: "sr-03", category: "single", name: "Rosy Beads",        price: 150,           ...R("03"), description: "A soft pink floral charm flanked by candy-colored beads on a tricolor braided thread." },
   { id: "sr-04", category: "single", name: "Nazar Shield",      price: 160, mrp: 180, ...R("04"), tag: "New",        description: "A bold blue evil eye center ringed with pearl-white petals — protective and striking on a cobalt blue thread." },

@@ -8,7 +8,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
     body: JSON.stringify({
       sender: {
         name: process.env.BREVO_FROM_NAME ?? "The Festive Thread",
-        email: process.env.BREVO_FROM_EMAIL ?? "kavitaagarwal1000@gmail.com",
+        email: process.env.BREVO_FROM_EMAIL ?? "thefestivethread.updates@gmail.com",
       },
       to: [{ email: to }],
       subject,
