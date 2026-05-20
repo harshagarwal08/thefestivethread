@@ -70,7 +70,7 @@ function customerEmail(order: StoredOrder): string {
         <tr><td style="padding:24px 40px;border-bottom:1px solid #EDE5D8;">
           <p style="margin:0;font-size:15px;color:#4A2C1A;line-height:1.7;">
             Dear ${order.address.name},<br/><br/>
-            Thank you for your order. We've received your payment and your rakhi hamper will be lovingly packed and dispatched within <strong>1–2 business days</strong>.
+            Thank you for your order. We've received your payment and your order will be lovingly packed and dispatched within <strong>1–2 business days</strong>.
           </p>
         </td></tr>
         <tr><td style="padding:24px 40px;border-bottom:1px solid #EDE5D8;">
