@@ -2,6 +2,7 @@ const CLOUD = "dmyvc9kof";
 const BASE = `https://res.cloudinary.com/${CLOUD}/image/upload`;
 
 export function cdnUrl(path: string, transforms = "f_auto,q_auto") {
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const publicId = path.replace(/^\//, "").replace(/\.[^.]+$/, "");
   return `${BASE}/${transforms}/${publicId}`;
 }

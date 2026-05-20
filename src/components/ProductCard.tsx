@@ -1,16 +1,36 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Product, placeholderColor } from "@/lib/products";
 import { cdnUrl, blurDataUrl } from "@/lib/cloudinary";
+import { useCart } from "@/lib/cart";
 
 export default function ProductCard({ product }: { product: Product }) {
   const bg = placeholderColor(product.id);
   const hasSecond = Boolean(product.image2);
+  const { addItem } = useCart();
+  const router = useRouter();
+
+  const discount = product.mrp
+    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+    : 0;
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (product.variants?.length) {
+      router.push(`/shop/${product.id}`);
+      return;
+    }
+    addItem(product.id);
+  };
 
   return (
     <Link href={`/shop/${product.id}`} className="group block">
+      {/* Image */}
       <div
-        className="relative aspect-[3/4] overflow-hidden mb-3"
+        className="relative aspect-3/4 overflow-hidden mb-3"
         style={{ background: product.image ? undefined : bg }}
       >
         {product.image ? (
@@ -46,28 +66,50 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
+        {/* Tag chip */}
         {product.tag && (
-          <span className="absolute top-3 left-3 bg-[#1C1009] text-[#F9F5EF] text-[0.6rem] tracking-[0.14em] uppercase px-2.5 py-1 font-medium z-10">
+          <span className="absolute top-3 left-3 bg-brown-dark text-cream text-[0.6rem] tracking-[0.14em] uppercase px-2.5 py-1 font-medium z-10">
             {product.tag}
           </span>
         )}
 
-        {/* Overlay only when there's a second image (hover effect active) */}
-        {hasSecond && (
-          <div className="absolute inset-0 bg-[#1C1009]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-5 z-10">
-            <span className="border border-[#F9F5EF]/70 text-[#F9F5EF] text-[0.65rem] tracking-[0.14em] uppercase px-5 py-2">
-              View Details
-            </span>
-          </div>
+        {/* Discount chip */}
+        {discount >= 10 && (
+          <span className="absolute top-3 right-3 bg-terracotta text-white text-[0.58rem] font-bold px-2 py-1 z-10">
+            {discount}% off
+          </span>
         )}
+
+        {/* Low stock badge */}
+        {product.stock !== undefined && product.stock < 5 && (
+          <span className="absolute bottom-3 left-3 bg-amber-500/90 text-white text-[0.58rem] tracking-[0.06em] uppercase px-2 py-1 z-10">
+            Only {product.stock} left
+          </span>
+        )}
+
+        {/* Quick add overlay */}
+        <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200 z-20">
+          <button
+            onClick={handleQuickAdd}
+            className="w-full py-2.5 bg-brown-dark text-cream text-[0.62rem] tracking-[0.14em] uppercase hover:bg-terracotta transition-colors"
+          >
+            {product.variants?.length ? "Choose Options" : "Add to Cart"}
+          </button>
+        </div>
       </div>
 
-      <h3 className="font-display text-lg text-[#1C1009] mb-1 leading-snug group-hover:text-[#B5541E] transition-colors">
+      {/* Info */}
+      <h3 className="font-display text-lg text-brown-dark mb-1 leading-snug group-hover:text-terracotta transition-colors">
         {product.name}
       </h3>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-terracotta text-sm">₹{product.price}</p>
-        <p className="text-[0.6rem] tracking-[0.12em] uppercase text-taupe-light">{product.id.toUpperCase()}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-terracotta text-sm font-medium">₹{product.price}</p>
+        {product.mrp && (
+          <p className="text-taupe-light text-[0.75rem] line-through">₹{product.mrp}</p>
+        )}
+        {discount >= 10 && (
+          <p className="text-terracotta text-[0.62rem] font-medium">{discount}% off</p>
+        )}
       </div>
     </Link>
   );

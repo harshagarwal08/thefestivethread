@@ -55,13 +55,8 @@ function buildItemsHtml(order: StoredOrder): string {
   return rows.join("");
 }
 
-function customerEmail(order: StoredOrder, awb?: string, courierName?: string): string {
-  const trackingSection = awb ? `
-    <tr><td style="padding:16px 40px;border-bottom:1px solid #EDE5D8;background:#FBF7F2;">
-      <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#B5541E;">Tracking</p>
-      <p style="margin:0;font-size:14px;color:#1C1009;font-weight:500;">${awb}</p>
-      ${courierName ? `<p style="margin:4px 0 0;font-size:12px;color:#8A7968;">${courierName}</p>` : ""}
-    </td></tr>` : "";
+function customerEmail(order: StoredOrder): string {
+  const trackingSection = "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"/></head>
@@ -108,7 +103,7 @@ function customerEmail(order: StoredOrder, awb?: string, courierName?: string): 
         </td></tr>
         <tr><td style="padding:24px 40px;text-align:center;">
           <p style="margin:0;font-size:13px;color:#8A7968;line-height:1.8;">
-            ${awb ? `Your order is on its way!` : `You'll receive tracking details once your order is dispatched.`}<br/>
+            You'll receive tracking details once your order is dispatched.<br/>
             Questions? WhatsApp us at <a href="https://wa.me/919883088575" style="color:#B5541E;">+91 98830 88575</a>
           </p>
         </td></tr>
@@ -118,13 +113,13 @@ function customerEmail(order: StoredOrder, awb?: string, courierName?: string): 
 </body></html>`;
 }
 
-function adminEmail(order: StoredOrder, paymentId: string, awb?: string, courierName?: string): string {
-  const dispatchStatus = awb
+function adminEmail(order: StoredOrder, paymentId: string, shiprocketOrderId?: number): string {
+  const dispatchStatus = shiprocketOrderId
     ? `<tr><td style="padding:12px 40px;background:#F0F9F0;border-bottom:1px solid #EDE5D8;">
-        <p style="margin:0;font-size:13px;color:#1C6E1C;">✓ Auto-dispatched via ${courierName ?? "courier"} · AWB: ${awb}</p>
+        <p style="margin:0;font-size:13px;color:#1C6E1C;">✓ Order created in Shiprocket (#${shiprocketOrderId}) — awaiting your dispatch</p>
        </td></tr>`
     : `<tr><td style="padding:12px 40px;background:#FFF8E6;border-bottom:1px solid #EDE5D8;">
-        <p style="margin:0;font-size:13px;color:#8A6000;">⚠ Shiprocket dispatch failed — please create shipment manually</p>
+        <p style="margin:0;font-size:13px;color:#8A6000;">⚠ Shiprocket order creation failed — please create manually</p>
        </td></tr>`;
 
   return `<!DOCTYPE html>
@@ -228,8 +223,25 @@ export async function POST(req: NextRequest) {
     const now = new Date();
     const orderDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-    let awb: string | undefined;
-    let courierName: string | undefined;
+    // Build human-readable comment for Shiprocket dashboard
+    const commentLines: string[] = [];
+    for (const it of order.items) {
+      const variant = it.variant ? ` (${it.variant})` : "";
+      commentLines.push(`${it.name}${variant} x${it.quantity}`);
+      if (it.hamper) {
+        commentLines.push(`  Box: ${getBox(it.hamper.boxId as never).label}`);
+        commentLines.push(`  Chocolate: ${getChocolate(it.hamper.chocolateId as never).label}`);
+      }
+    }
+    for (const h of order.hamperItems ?? []) {
+      commentLines.push(`Hamper — Box: ${h.boxLabel} | Chocolate: ${h.chocolateLabel}`);
+      for (const r of h.rakhis) {
+        commentLines.push(`  ${r.name} x${r.quantity}`);
+      }
+    }
+    const comment = commentLines.join("\n");
+
+    let shiprocketOrderId: number | undefined;
 
     try {
       const sr = await createShiprocketOrder({
@@ -243,14 +255,14 @@ export async function POST(req: NextRequest) {
         pincode: order.address.pincode,
         total: order.total,
         hasHamper,
+        comment,
         items: srItems,
       });
-      awb = sr.awb;
-      courierName = sr.courierName;
-      console.log(`[webhook/instamojo] Shiprocket order created: ${sr.orderId} | AWB: ${awb}`);
+      shiprocketOrderId = sr.orderId;
+      console.log(`[webhook/instamojo] Shiprocket order created: ${sr.orderId}`);
       await kv.set(`order:${orderRef}`, {
         ...order, status: "PAID", paymentId: payment_id, paidAt,
-        shiprocketOrderId: sr.orderId, awb: awb ?? null, courierName: courierName ?? null,
+        shiprocketOrderId: sr.orderId,
       }, { ex: 60 * 60 * 24 * 30 });
     } catch (srErr) {
       console.error(`[webhook/instamojo] Shiprocket failed for ${orderRef}:`, srErr);
@@ -269,7 +281,7 @@ export async function POST(req: NextRequest) {
           from: FROM,
           to: order.address.email,
           subject: `Order Confirmed — ${orderRef} · The Festive Thread`,
-          html: customerEmail(order, awb, courierName),
+          html: customerEmail(order),
         }));
       }
 
@@ -277,7 +289,7 @@ export async function POST(req: NextRequest) {
         from: FROM,
         to: KAVITA_EMAIL,
         subject: `New Order: ${orderRef} — ₹${order.total} · ${order.address.name}`,
-        html: adminEmail(order, payment_id, awb, courierName),
+        html: adminEmail(order, payment_id, shiprocketOrderId),
       }));
 
       await Promise.all(emails);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPaymentRequest } from "@/lib/instamojo";
 import { getProductById } from "@/lib/products";
 import { getBox, getChocolate } from "@/lib/hamperOptions";
+import { validateDiscount, incrementUsage } from "@/lib/discount";
 import { kv } from "@/lib/kv";
 
 export const runtime = "nodejs";
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
     const items: IncomingItem[] = body.items ?? [];
     const hamperItems: IncomingHamperItem[] = body.hamperItems ?? [];
     const address: Address = body.address;
+    const discountCode: string | undefined = body.discountCode?.trim().toUpperCase() || undefined;
 
     if ((!items?.length && !hamperItems?.length) || !address) {
       return NextResponse.json({ error: "Missing items or address" }, { status: 400 });
@@ -98,7 +100,14 @@ export async function POST(req: NextRequest) {
 
     const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE;
 
-    const total = subtotal + shipping;
+    // Apply discount
+    let discountAmount = 0;
+    if (discountCode) {
+      const dv = await validateDiscount(discountCode, subtotal);
+      if (dv.valid) discountAmount = dv.discount;
+    }
+
+    const total = Math.max(9, subtotal + shipping - discountAmount); // min ₹9 (Instamojo)
     const orderRef = `TFT-${Date.now()}`;
 
     // Build full order record
@@ -138,6 +147,8 @@ export async function POST(req: NextRequest) {
       }),
       subtotal,
       shipping,
+      discountCode: discountCode ?? null,
+      discountAmount,
       total,
       status: "PENDING",
       createdAt: new Date().toISOString(),
@@ -159,7 +170,9 @@ export async function POST(req: NextRequest) {
       webhookUrl: `${origin}/api/webhooks/instamojo`,
     });
 
-    return NextResponse.json({ paymentUrl, orderRef, total, shipping });
+    if (discountCode && discountAmount > 0) await incrementUsage(discountCode);
+
+    return NextResponse.json({ paymentUrl, orderRef, total, shipping, discountAmount });
   } catch (err) {
     console.error("[orders/create]", err);
     return NextResponse.json({ error: "Failed to create payment request" }, { status: 500 });

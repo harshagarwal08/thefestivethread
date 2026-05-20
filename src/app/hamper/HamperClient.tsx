@@ -17,10 +17,15 @@ const boxBg: Record<BoxId, string> = {
   velvet: "linear-gradient(150deg, #3A1550 0%, #250D38 55%, #130520 100%)",
 };
 const chocoBg: Record<ChocolateId, string> = {
-  none:      "linear-gradient(150deg, #EDE5D8 0%, #D4C8B0 100%)",
-  dairymilk: "linear-gradient(150deg, #5C2080 0%, #3D1155 55%, #1E0828 100%)",
-  kitkat:    "linear-gradient(150deg, #D82828 0%, #A01818 55%, #620808 100%)",
-  ferrero:   "linear-gradient(150deg, #C09020 0%, #8A6010 55%, #483008 100%)",
+  none:       "linear-gradient(150deg, #EDE5D8 0%, #D4C8B0 100%)",
+  "silk-60":  "linear-gradient(150deg, #5C2080 0%, #3D1155 55%, #1E0828 100%)",
+  "silk-144": "linear-gradient(150deg, #4A1870 0%, #2E0C48 55%, #160624 100%)",
+  "fn-51":    "linear-gradient(150deg, #7B3A10 0%, #5A2608 55%, #2E1204 100%)",
+  "fn-129":   "linear-gradient(150deg, #6A2E08 0%, #4A1E04 55%, #260E02 100%)",
+  "oreo-124": "linear-gradient(150deg, #1A1A2E 0%, #10101E 55%, #08080E 100%)",
+  "ferrero-50": "linear-gradient(150deg, #C09020 0%, #8A6010 55%, #483008 100%)",
+  "kitkat-4":  "linear-gradient(150deg, #D82828 0%, #A01818 55%, #620808 100%)",
+  "kisses-36": "linear-gradient(150deg, #8B1A2C 0%, #6A1020 55%, #3A0810 100%)",
 };
 
 // ─── PickerCard (box / chocolate) ─────────────────────────────────────────────
@@ -34,21 +39,21 @@ function PickerCard({ selected, onClick, bg, image, label, sublabel, price }: {
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className={`relative shrink-0 w-44 md:w-52 overflow-hidden cursor-pointer text-left transition-shadow duration-300 ${
+      className={`relative shrink-0 w-44 overflow-hidden cursor-pointer text-left transition-shadow duration-300 ${
         selected ? "shadow-[0_16px_40px_rgba(0,0,0,0.18)]" : "shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_10px_32px_rgba(0,0,0,0.2)]"
       }`}
       style={{ background: image ? undefined : bg }}
     >
-      <div className="relative h-44 md:h-52">
+      <div className="relative h-44">
         {image ? (
           <Image src={cdnUrl(image)} alt={label} fill className="object-cover" sizes="208px" />
         ) : (
           <div className="w-full h-full" style={{ background: bg }} />
         )}
       </div>
-      <div className="px-4 py-3.5 bg-[#1C1009]/80 border-t border-white/10">
-        <p className="font-display text-[0.95rem] text-[#F9F5EF] leading-tight">{label}</p>
-        <p className="text-[0.6rem] tracking-[0.06em] text-[#B5A898] mt-0.5 leading-snug">{sublabel}</p>
+      <div className="px-4 py-3.5 bg-[#1C1009]/80 border-t border-white/10 h-21 flex flex-col justify-center">
+        <p className="font-display text-[0.95rem] text-[#F9F5EF] leading-tight line-clamp-1">{label}</p>
+        <p className="text-[0.6rem] tracking-[0.06em] text-[#B5A898] mt-0.5 leading-snug line-clamp-1">{sublabel}</p>
         <p className="text-[0.7rem] font-medium text-[#E8B84B] mt-1.5">{price === 0 ? "Free" : `+₹${price}`}</p>
       </div>
       <AnimatePresence>
@@ -261,7 +266,7 @@ function HamperBuilderInner() {
   const { addHamper } = useCart();
 
   const [boxId, setBoxId] = useState<BoxId>("wooden");
-  const [chocoId, setChocoId] = useState<ChocolateId>("dairymilk");
+  const [chocoId, setChocoId] = useState<ChocolateId>("silk-60");
   const [rakhis, setRakhis] = useState<HamperRakhi[]>([]);
   const [variantMap, setVariantMap] = useState<Record<string, string>>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -358,7 +363,7 @@ function HamperBuilderInner() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 md:gap-16 items-start">
 
           {/* ── Left ── */}
-          <div className="flex flex-col gap-14">
+          <div className="flex flex-col gap-14 min-w-0">
 
             {/* 01 — Rakhis */}
             <section>
@@ -460,10 +465,12 @@ function HamperBuilderInner() {
                   <p className="text-[0.68rem] text-[#8A7968] mt-0.5">The first thing they&apos;ll unwrap</p>
                 </div>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
+              <div className="flex gap-4 overflow-x-auto pb-4 w-full" style={{ scrollbarWidth: "none", scrollSnapType: "x mandatory" }}>
                 {boxes.map((b) => (
-                  <PickerCard key={b.id} selected={boxId === b.id} onClick={() => setBoxId(b.id)}
-                    bg={boxBg[b.id]} image={b.image} label={b.label} sublabel={b.desc} price={b.price} />
+                  <div key={b.id} style={{ scrollSnapAlign: "start" }}>
+                    <PickerCard selected={boxId === b.id} onClick={() => setBoxId(b.id)}
+                      bg={boxBg[b.id]} image={b.image} label={b.label} sublabel={b.desc} price={b.price} />
+                  </div>
                 ))}
               </div>
               <div className="mt-3 pl-4 py-3 border-l-2 border-[#B5541E] bg-[#F9F5EF]">
@@ -482,10 +489,12 @@ function HamperBuilderInner() {
                   <p className="text-[0.68rem] text-[#8A7968] mt-0.5">Every great gift has a sweet moment</p>
                 </div>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4" style={{ scrollbarWidth: "none" }}>
+              <div className="flex gap-4 overflow-x-auto pb-4 w-full" style={{ scrollbarWidth: "none", scrollSnapType: "x mandatory" }}>
                 {chocolates.map((c) => (
-                  <PickerCard key={c.id} selected={chocoId === c.id} onClick={() => setChocoId(c.id)}
-                    bg={chocoBg[c.id]} image={c.image} label={c.label} sublabel={c.desc} price={c.price} />
+                  <div key={c.id} className="shrink-0" style={{ scrollSnapAlign: "start" }}>
+                    <PickerCard selected={chocoId === c.id} onClick={() => setChocoId(c.id)}
+                      bg={chocoBg[c.id]} image={c.image} label={c.label} sublabel={c.desc} price={c.price} />
+                  </div>
                 ))}
               </div>
               <div className="mt-3 pl-4 py-3 border-l-2 border-[#B5541E] bg-[#F9F5EF]">

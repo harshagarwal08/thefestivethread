@@ -66,6 +66,7 @@ export interface ShiprocketOrderParams {
   pincode: string;
   total: number;
   hasHamper: boolean;     // drives weight/dimensions
+  comment?: string;       // full order summary for Shiprocket dashboard
   items: ShiprocketOrderItem[];
 }
 
@@ -88,7 +89,7 @@ export async function createShiprocketOrder(params: ShiprocketOrderParams): Prom
     order_date: params.orderDate,
     pickup_location: "Home",
     channel_id: "",
-    comment: "",
+    comment: params.comment ?? "",
     billing_customer_name: params.buyerName,
     billing_last_name: "",
     billing_address: params.address,

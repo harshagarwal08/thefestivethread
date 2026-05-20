@@ -96,6 +96,11 @@ export default function CartClient() {
   const [shipping, setShipping] = useState<number | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState<string | null>(null);
 
   const itemsWithProducts = items.map((item) => ({
     item,
@@ -125,7 +130,7 @@ export default function CartClient() {
   const hamperSubtotal = hamperItems.reduce((s, h) => s + hamperLineTotal(h), 0);
   const subtotal = standaloneSubtotal + hamperSubtotal;
   const hasHamper = items.some((it) => !!it.hamper) || hamperItems.length > 0;
-  const total = subtotal + (shipping ?? 0);
+  const total = subtotal + (shipping ?? 0) - discountAmount;
 
   // Refetch shipping when hamper status changes (weight changes 0.15→0.75kg)
   const prevHasHamper = useRef(hasHamper);
@@ -180,6 +185,41 @@ export default function CartClient() {
     return Object.keys(e).length === 0;
   };
 
+  const applyDiscount = async () => {
+    const code = discountCode.trim().toUpperCase();
+    if (!code) return;
+    setDiscountLoading(true);
+    setDiscountError(null);
+    try {
+      const res = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, cartTotal: subtotal }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCode(code);
+        setDiscountAmount(data.discount);
+        setDiscountError(null);
+      } else {
+        setDiscountError(data.message ?? "Invalid code");
+        setAppliedCode(null);
+        setDiscountAmount(0);
+      }
+    } catch {
+      setDiscountError("Could not apply code. Try again.");
+    } finally {
+      setDiscountLoading(false);
+    }
+  };
+
+  const removeDiscount = () => {
+    setAppliedCode(null);
+    setDiscountAmount(0);
+    setDiscountCode("");
+    setDiscountError(null);
+  };
+
   const placeOrder = async () => {
     if (!validate()) return;
     if (paymentStarted.current) return; // prevent duplicate orders on double-click
@@ -193,6 +233,7 @@ export default function CartClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           address,
+          discountCode: appliedCode ?? undefined,
           items: items.map((it) => ({
             productId: it.productId,
             quantity: it.quantity,
@@ -511,6 +552,45 @@ export default function CartClient() {
                 Free shipping on orders above ₹{FREE_SHIPPING_THRESHOLD}
               </p>
             )}
+
+            {/* Discount code */}
+            <div className="border-t border-[#EDE5D8] pt-3">
+              {appliedCode ? (
+                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 px-3 py-2">
+                  <div>
+                    <p className="text-[0.62rem] text-emerald-700 font-semibold">{appliedCode} applied</p>
+                    <p className="text-[0.6rem] text-emerald-600">−₹{discountAmount} off</p>
+                  </div>
+                  <button onClick={removeDiscount} className="text-emerald-500 hover:text-emerald-700 text-lg leading-none">×</button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === "Enter" && applyDiscount()}
+                    placeholder="Discount code"
+                    className="flex-1 border border-[#DDD4C4] px-3 py-2 text-[0.78rem] text-brown-dark bg-cream outline-none focus:border-terracotta transition-colors placeholder:text-taupe-light"
+                  />
+                  <button
+                    onClick={applyDiscount}
+                    disabled={discountLoading || !discountCode.trim()}
+                    className="px-4 py-2 bg-brown-dark text-cream text-[0.65rem] tracking-widest uppercase hover:bg-terracotta transition-colors disabled:opacity-50"
+                  >
+                    {discountLoading ? "…" : "Apply"}
+                  </button>
+                </div>
+              )}
+              {discountError && <p className="text-[0.62rem] text-red-500 mt-1">{discountError}</p>}
+            </div>
+
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-[0.8rem]">
+                <span className="text-emerald-600">Discount ({appliedCode})</span>
+                <span className="text-emerald-600 font-medium">−₹{discountAmount}</span>
+              </div>
+            )}
+
             <div className="border-t border-[#EDE5D8] pt-3 flex justify-between items-baseline">
               <span className="text-[0.68rem] tracking-[0.1em] uppercase font-medium text-[#4A2C1A]">Total</span>
               <span className="font-display text-[1.5rem] text-[#B5541E]">
