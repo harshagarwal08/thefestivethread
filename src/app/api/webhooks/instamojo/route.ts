@@ -4,13 +4,11 @@ import { createShiprocketOrder } from "@/lib/shiprocket";
 import { getProductById } from "@/lib/products";
 import { getBox, getChocolate } from "@/lib/hamperOptions";
 import { kv } from "@/lib/kv";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/mailer";
 
 export const runtime = "nodejs";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const KAVITA_EMAIL = "kavitaagarwal1000@gmail.com";
-const FROM = process.env.RESEND_FROM ?? "The Festive Thread <onboarding@resend.dev>";
 
 interface StoredOrder {
   orderRef: string;
@@ -275,16 +273,14 @@ export async function POST(req: NextRequest) {
       const emails: Promise<unknown>[] = [];
 
       if (order.address.email) {
-        emails.push(resend.emails.send({
-          from: FROM,
+        emails.push(sendEmail({
           to: order.address.email,
           subject: `Order Confirmed — ${orderRef} · The Festive Thread`,
           html: customerEmail(order),
         }));
       }
 
-      emails.push(resend.emails.send({
-        from: FROM,
+      emails.push(sendEmail({
         to: KAVITA_EMAIL,
         subject: `New Order: ${orderRef} — ₹${order.total} · ${order.address.name}`,
         html: adminEmail(order, payment_id, shiprocketOrderId),

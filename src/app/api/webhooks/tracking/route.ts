@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { kv } from "@/lib/kv";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/mailer";
 
 export const runtime = "nodejs";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.RESEND_FROM ?? "The Festive Thread <onboarding@resend.dev>";
 
 interface StoredOrder {
   orderRef: string;
@@ -104,8 +101,7 @@ export async function POST(req: NextRequest) {
 
     // Email customer
     if (order.address.email) {
-      await resend.emails.send({
-        from: FROM,
+      await sendEmail({
         to: order.address.email,
         subject: `Your order is on its way! — ${orderRef} · The Festive Thread`,
         html: shippedEmail(order, awb, courierName),
