@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
         shiprocketOrderId: sr.orderId,
       }, { ex: 60 * 60 * 24 * 30 });
     } catch (srErr) {
-      console.error(`[webhook/instamojo] Shiprocket failed for ${orderRef}:`, srErr);
+      console.error(`[webhook/instamojo] Shiprocket failed for ${orderRef}:`, String(srErr));
       await kv.set(`order:${orderRef}`, {
         ...order, status: "PAID_UNSHIPPED", paymentId: payment_id, paidAt,
         shiprocketError: String(srErr),
