@@ -8,7 +8,7 @@ import { useCart, itemKey, type HamperOptions, type HamperCartItem } from "@/lib
 import { getProductById, type ProductVariant } from "@/lib/products";
 import { boxes, chocolates, getBox, getChocolate, type BoxId, type ChocolateId } from "@/lib/hamperOptions";
 
-const FREE_SHIPPING_THRESHOLD = 1; // TEMP: lowered for testing — revert to 499
+const FREE_SHIPPING_THRESHOLD = 0;
 
 interface Address {
   name: string;
@@ -532,26 +532,8 @@ export default function CartClient() {
             ))}
             <div className="border-t border-[#EDE5D8] pt-3 flex justify-between text-[0.8rem]">
               <span className="text-[#8A7968]">Shipping</span>
-              <span className="text-[#4A2C1A] font-medium">
-                {subtotal >= FREE_SHIPPING_THRESHOLD
-                  ? "Free"
-                  : shippingLoading
-                  ? "Calculating…"
-                  : shipping === null
-                  ? <span className="text-taupe-light font-normal">Enter pincode</span>
-                  : shipping === 0
-                  ? "Free"
-                  : `₹${shipping}`}
-              </span>
+              <span className="text-emerald-600 font-medium">Free</span>
             </div>
-            {shippingError && (
-              <p className="text-[0.62rem] text-red-500 leading-[1.6]">{shippingError}</p>
-            )}
-            {!shippingError && subtotal < FREE_SHIPPING_THRESHOLD && (
-              <p className="text-[0.62rem] text-taupe-light leading-[1.6]">
-                Free shipping on orders above ₹{FREE_SHIPPING_THRESHOLD}
-              </p>
-            )}
 
             {/* Discount code */}
             <div className="border-t border-[#EDE5D8] pt-3">
@@ -594,14 +576,14 @@ export default function CartClient() {
             <div className="border-t border-[#EDE5D8] pt-3 flex justify-between items-baseline">
               <span className="text-[0.68rem] tracking-[0.1em] uppercase font-medium text-[#4A2C1A]">Total</span>
               <span className="font-display text-[1.5rem] text-[#B5541E]">
-                {shipping === null && subtotal < FREE_SHIPPING_THRESHOLD ? `₹${subtotal}+` : `₹${total}`}
+                ₹{total}
               </span>
             </div>
           </div>
           <div className="px-5 pb-5 flex flex-col gap-3">
             <button
               onClick={placeOrder}
-              disabled={paymentLoading || shippingLoading || (shipping === null && subtotal < FREE_SHIPPING_THRESHOLD)}
+              disabled={paymentLoading}
               className="w-full text-[0.7rem] font-medium tracking-[0.12em] uppercase py-4 bg-[#1C1009] text-[#F9F5EF] hover:bg-[#B5541E] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {paymentLoading ? "Redirecting to Payment…" : "Proceed to Payment"}
@@ -616,7 +598,7 @@ export default function CartClient() {
         </div>
 
         <div className="flex flex-col gap-2">
-          {["Handcrafted with love in India", "Ships within 5–7 business days", "Confirm address before ordering"].map((t) => (
+          {["Handcrafted with love in India", "Free delivery Pan-India", "Ships within 5–7 business days"].map((t) => (
             <span key={t} className="text-[0.66rem] tracking-[0.08em] text-[#8A7968]">{t}</span>
           ))}
         </div>

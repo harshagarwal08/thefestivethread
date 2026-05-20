@@ -181,7 +181,7 @@ export default function Home() {
       {/* ── Promise strip ── */}
       <div className="bg-[#B5541E] py-3.5">
         <div className="max-w-[1300px] mx-auto px-4 md:px-10 flex flex-wrap justify-center gap-6 md:gap-10">
-          {["Pan-India Delivery", "Every Rakhi Handcrafted", "Secure Payments via Instamojo", "Custom Orders Welcome"].map((t) => (
+          {["Free Delivery Pan-India", "Every Rakhi Handcrafted", "Secure Payments via Instamojo", "Custom Orders Welcome"].map((t) => (
             <div key={t} className="text-[#F9F5EF] text-[0.68rem] tracking-[0.1em] uppercase">{t}</div>
           ))}
         </div>

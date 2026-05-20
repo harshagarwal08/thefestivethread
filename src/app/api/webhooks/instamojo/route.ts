@@ -172,12 +172,10 @@ export async function POST(req: NextRequest) {
     const payload: Record<string, string> = {};
     formData.forEach((v, k) => { payload[k] = String(v); });
 
-    // TEMP: log payload regardless of MAC to debug webhook delivery
     console.log("[webhook/instamojo] payload received", JSON.stringify(payload));
     if (!verifyWebhookMAC(payload)) {
       console.error("[webhook/instamojo] MAC verification failed", payload);
-      // TEMP: skip MAC check to test webhook delivery
-      // return NextResponse.json({ error: "Invalid MAC" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid MAC" }, { status: 400 });
     }
 
     const { status, payment_id, purpose: purposeRaw } = payload;

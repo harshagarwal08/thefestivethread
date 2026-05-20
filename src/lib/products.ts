@@ -47,54 +47,51 @@ const K = (n: string) => ({
 });
 
 export const products: Product[] = [
-  // Test product (remove after testing)
-  { id: "test-01", category: "single", name: "Test Rakhi (₹9)", price: 9, image: "/images/rakhis/01.jpg", description: "Test product — do not purchase." },
-
   // Single Rakhis (26)
-  { id: "sr-01", category: "single", name: "Golden Paisley",    price: 69,  mrp: 90,  ...R("01"), description: "Antique gold paisley medallion with kundan detailing and pearl bead accents on a classic red thread." },
-  { id: "sr-02", category: "single", name: "Triple Gold",       price: 59,  mrp: 80,  ...R("02"), description: "Three stacked gold disc medallions lined up on a twisted saffron-red thread — bold, symmetrical, understated." },
-  { id: "sr-03", category: "single", name: "Rosy Beads",        price: 49,            ...R("03"), description: "A soft pink floral charm flanked by candy-colored beads on a tricolor braided thread." },
-  { id: "sr-04", category: "single", name: "Nazar Shield",      price: 59,  mrp: 80,  ...R("04"), tag: "New",        description: "A bold blue evil eye center ringed with pearl-white petals — protective and striking on a cobalt blue thread." },
-  { id: "sr-05", category: "single", name: "Crimson Halo",      price: 59,  mrp: 80,  ...R("05"), description: "Crystal rhinestone center set in a deep red medallion, bordered by coral and pearl beads on scarlet thread." },
-  { id: "sr-06", category: "single", name: "Daisy & Crystal",   price: 39,            ...R("06"), description: "A delicate white daisy charm with silver crystal leaf sprigs on a bright marigold yellow thread." },
-  { id: "sr-07", category: "single", name: "Om Jade",           price: 49,  mrp: 70,  ...R("07"), tag: "Bestseller", description: "Silver Om charm strung between pale jade green beads on golden thread — spiritual and serene." },
-  { id: "sr-08", category: "single", name: "Sacred Swastik",    price: 39,            ...R("08"), description: "Antique gold swastik charm with coral and pearl bead accents on a traditional red-and-gold thread." },
-  { id: "sr-09", category: "single", name: "Golden Diamond",    price: 59,  mrp: 80,  ...R("09"), description: "A geometric diamond-framed gold medallion with a sparkling center stone on red-and-gold thread." },
-  { id: "sr-10", category: "single", name: "Pearl Strand",      price: 69,  mrp: 99,  ...R("10"), description: "A full strand of white pearls and gold beads centered on a delicate embroidered disc — refined and elegant." },
-  { id: "sr-11", category: "single", name: "Antique Peacock",   price: 59,  mrp: 80,  ...R("11"), description: "A hand-cast antique gold peacock charm with pearl accents on a bold red-and-blue braided thread." },
-  { id: "sr-12", category: "single", name: "Trishul",           price: 49,  mrp: 70,  ...R("12"), tag: "Bestseller", description: "A gleaming gold trishul charm flanked by red coral beads on a simple, sacred red thread." },
-  { id: "sr-13", category: "single", name: "Meenakari Square",  price: 49,  mrp: 70,  ...R("13"), tag: "New",        description: "A vibrant meenakari-inspired embroidered square in red and gold on a bright yellow thread with tassels." },
-  { id: "sr-14", category: "single", name: "Blue Pearl Vine",   price: 59,            ...R("14"), description: "White seed beads and turquoise accents woven into a delicate vine, centered on a dainty pearl flower." },
-  { id: "sr-15", category: "single", name: "Sunshine Nazar",    price: 69,  mrp: 90,  ...R("15"), description: "A sunny yellow evil eye medallion with a long pearl tassel drop on golden braided thread — cheerful protection." },
-  { id: "sr-16", category: "single", name: "Garnet & Gold",     price: 49,            ...R("16"), description: "Deep red garnet-toned beads with a petite gold-set center gem on red thread — understated and gemstone-rich." },
-  { id: "sr-17", category: "single", name: "Rose & Violet",     price: 59,  mrp: 80,  ...R("17"), description: "Candy-pink and lavender beads on violet silk thread, centered on a gold floral gem — soft and romantic." },
-  { id: "sr-18", category: "single", name: "Pearl Bar",         price: 49,            ...R("18"), description: "A clean horizontal bar of white pearls set in gold on red-and-yellow thread — architectural and minimal." },
-  { id: "sr-19", category: "single", name: "Lotus Bead",        price: 49,            ...R("19"), description: "Deep red crystal beads on red thread, punctuated by a small antique gold lotus charm at center." },
-  { id: "sr-20", category: "single", name: "Diamond Pearl",     price: 59,  mrp: 80,  ...R("20"), description: "A sparkling diamond-cut crystal flanked by white pearls and red beads on a classic red thread." },
-  { id: "sr-21", category: "single", name: "Grand Paisley",     price: 79,  mrp: 110, stock: 4, ...R("21"), description: "An oversized antique gold paisley with red velvet inlay and pearl drop fringe — bold and ceremonial." },
-  { id: "sr-22", category: "single", name: "Peacock Feather",   price: 69,  mrp: 90,  ...R("22"), description: "A hand-crafted teardrop with a peacock feather eye inlaid in pearl and blue — nature-inspired and striking." },
-  { id: "sr-23", category: "single", name: "Panna Braid",       price: 59,            ...R("23"), description: "Coral and mint threads woven in a fishtail braid, centered on a dainty gold flower with pearl drop accents." },
-  { id: "sr-24", category: "single", name: "Meena Round",       price: 79,  mrp: 110, ...R("24"), description: "A vibrant round meenakari bead in jewel-bright enamel colors on a bold knotted cord.", variants: [{ label: "Red", value: "red", color: "#B5341E" }, { label: "Blue", value: "blue", color: "#1E40AF" }] },
-  { id: "sr-25", category: "single", name: "Druzy Disc",        price: 69,  mrp: 90,  ...R("25"), description: "A chunky druzy-textured silver disc ringed with seed pearls on a warm orange-and-white braided thread." },
-  { id: "sr-26", category: "single", name: "Crystal Crown",     price: 79,  mrp: 120, stock: 3, ...R("26"), tag: "Premium", description: "A dazzling ring of crystals set in silver on a royal blue-and-pink braided thread — a statement rakhi." },
+  { id: "sr-01", category: "single", name: "Golden Paisley",    price: 10, mrp: 190, ...R("01"), description: "Antique gold paisley medallion with kundan detailing and pearl bead accents on a classic red thread." },
+  { id: "sr-02", category: "single", name: "Triple Gold",       price: 160, mrp: 180, ...R("02"), description: "Three stacked gold disc medallions lined up on a twisted saffron-red thread — bold, symmetrical, understated." },
+  { id: "sr-03", category: "single", name: "Rosy Beads",        price: 150,           ...R("03"), description: "A soft pink floral charm flanked by candy-colored beads on a tricolor braided thread." },
+  { id: "sr-04", category: "single", name: "Nazar Shield",      price: 160, mrp: 180, ...R("04"), tag: "New",        description: "A bold blue evil eye center ringed with pearl-white petals — protective and striking on a cobalt blue thread." },
+  { id: "sr-05", category: "single", name: "Crimson Halo",      price: 160, mrp: 180, ...R("05"), description: "Crystal rhinestone center set in a deep red medallion, bordered by coral and pearl beads on scarlet thread." },
+  { id: "sr-06", category: "single", name: "Daisy & Crystal",   price: 140,           ...R("06"), description: "A delicate white daisy charm with silver crystal leaf sprigs on a bright marigold yellow thread." },
+  { id: "sr-07", category: "single", name: "Om Jade",           price: 150, mrp: 170, ...R("07"), tag: "Bestseller", description: "Silver Om charm strung between pale jade green beads on golden thread — spiritual and serene." },
+  { id: "sr-08", category: "single", name: "Sacred Swastik",    price: 140,           ...R("08"), description: "Antique gold swastik charm with coral and pearl bead accents on a traditional red-and-gold thread." },
+  { id: "sr-09", category: "single", name: "Golden Diamond",    price: 160, mrp: 180, ...R("09"), description: "A geometric diamond-framed gold medallion with a sparkling center stone on red-and-gold thread." },
+  { id: "sr-10", category: "single", name: "Pearl Strand",      price: 170, mrp: 200, ...R("10"), description: "A full strand of white pearls and gold beads centered on a delicate embroidered disc — refined and elegant." },
+  { id: "sr-11", category: "single", name: "Antique Peacock",   price: 160, mrp: 180, ...R("11"), description: "A hand-cast antique gold peacock charm with pearl accents on a bold red-and-blue braided thread." },
+  { id: "sr-12", category: "single", name: "Trishul",           price: 150, mrp: 170, ...R("12"), tag: "Bestseller", description: "A gleaming gold trishul charm flanked by red coral beads on a simple, sacred red thread." },
+  { id: "sr-13", category: "single", name: "Meenakari Square",  price: 150, mrp: 170, ...R("13"), tag: "New",        description: "A vibrant meenakari-inspired embroidered square in red and gold on a bright yellow thread with tassels." },
+  { id: "sr-14", category: "single", name: "Blue Pearl Vine",   price: 160,           ...R("14"), description: "White seed beads and turquoise accents woven into a delicate vine, centered on a dainty pearl flower." },
+  { id: "sr-15", category: "single", name: "Sunshine Nazar",    price: 170, mrp: 190, ...R("15"), description: "A sunny yellow evil eye medallion with a long pearl tassel drop on golden braided thread — cheerful protection." },
+  { id: "sr-16", category: "single", name: "Garnet & Gold",     price: 150,           ...R("16"), description: "Deep red garnet-toned beads with a petite gold-set center gem on red thread — understated and gemstone-rich." },
+  { id: "sr-17", category: "single", name: "Rose & Violet",     price: 160, mrp: 180, ...R("17"), description: "Candy-pink and lavender beads on violet silk thread, centered on a gold floral gem — soft and romantic." },
+  { id: "sr-18", category: "single", name: "Pearl Bar",         price: 150,           ...R("18"), description: "A clean horizontal bar of white pearls set in gold on red-and-yellow thread — architectural and minimal." },
+  { id: "sr-19", category: "single", name: "Lotus Bead",        price: 150,           ...R("19"), description: "Deep red crystal beads on red thread, punctuated by a small antique gold lotus charm at center." },
+  { id: "sr-20", category: "single", name: "Diamond Pearl",     price: 160, mrp: 180, ...R("20"), description: "A sparkling diamond-cut crystal flanked by white pearls and red beads on a classic red thread." },
+  { id: "sr-21", category: "single", name: "Grand Paisley",     price: 180, mrp: 210, stock: 4, ...R("21"), description: "An oversized antique gold paisley with red velvet inlay and pearl drop fringe — bold and ceremonial." },
+  { id: "sr-22", category: "single", name: "Peacock Feather",   price: 170, mrp: 190, ...R("22"), description: "A hand-crafted teardrop with a peacock feather eye inlaid in pearl and blue — nature-inspired and striking." },
+  { id: "sr-23", category: "single", name: "Panna Braid",       price: 160,           ...R("23"), description: "Coral and mint threads woven in a fishtail braid, centered on a dainty gold flower with pearl drop accents." },
+  { id: "sr-24", category: "single", name: "Meena Round",       price: 180, mrp: 210, ...R("24"), description: "A vibrant round meenakari bead in jewel-bright enamel colors on a bold knotted cord.", variants: [{ label: "Red", value: "red", color: "#B5341E" }, { label: "Blue", value: "blue", color: "#1E40AF" }] },
+  { id: "sr-25", category: "single", name: "Druzy Disc",        price: 170, mrp: 190, ...R("25"), description: "A chunky druzy-textured silver disc ringed with seed pearls on a warm orange-and-white braided thread." },
+  { id: "sr-26", category: "single", name: "Crystal Crown",     price: 180, mrp: 220, stock: 3, ...R("26"), tag: "Premium", description: "A dazzling ring of crystals set in silver on a royal blue-and-pink braided thread — a statement rakhi." },
 
   // Combo (Rakhi + Lumba sets)
-  { id: "cb-01", category: "combo", name: "Bhaiya Bhabhi Tag Set",  price: 199, mrp: 270, ...C("01"), tag: "Bestseller", description: "\"BHAIYA\" in a neat oval for him, \"BHABHI\" with a cheeky parrot and cascading pearl tassel for her." },
-  { id: "cb-02", category: "combo", name: "Emerald Square Set",     price: 149, mrp: 200, ...C("02"), description: "Rich emerald green meenakari square pieces — a matching rakhi and lumba on gold chain, both dripping with pearl drops." },
-  { id: "cb-03", category: "combo", name: "Rose Quartz Set",        price: 129, mrp: 170, ...C("03"), description: "Blush pink and lavender beads with an oval crystal center — a soft and romantic bhaiya-bhabhi duo." },
-  { id: "cb-04", category: "combo", name: "Maharani Set",           price: 249, mrp: 350, stock: 4, ...C("04"), description: "Her lumba drips with marquise stones and floral clusters; his rakhi gleams with matching jewels. Regal." },
-  { id: "cb-05", category: "combo", name: "Pearl Garden Set",       price: 249, mrp: 350, stock: 3, ...C("05"), description: "A grand floral lumba and a round pearl disc rakhi on golden thread — beautifully matched and breathtaking." },
-  { id: "cb-06", category: "combo", name: "Crystal Lotus Set",      price: 229, mrp: 310, ...C("06"), description: "Sparkling crystal lotus-leaf motifs — her lumba with an amber bead cascade, his rakhi light and luminous." },
-  { id: "cb-07", category: "combo", name: "Butterfly Nazar Set",    price: 249, mrp: 350, stock: 4, ...C("07"), description: "A bold golden butterfly lumba with evil eye center, paired with a petite matching eye rakhi — playful protection." },
-  { id: "cb-08", category: "combo", name: "Maldar Bhabhi Set",      price: 199, mrp: 270, ...C("08"), description: "A cheeky cartoon \"Maldar Bhabhi\" lumba with flower trim and a dainty crystal floral rakhi — guaranteed smiles." },
-  { id: "cb-09", category: "combo", name: "Diamond Tassel Set",     price: 149, mrp: 200, ...C("09"), tag: "New", description: "A sparkling diamond-cut oval rakhi and a matching pearl tassel lumba in rich maroon — glamorous and paired." },
-  { id: "cb-10", category: "combo", name: "Vintage Bird Set",       price: 199, mrp: 270, ...C("10"), description: "Antique brass bird charms with teal enamel and pearl tassel drops on olive thread — artisanal, old-world character." },
-  { id: "cb-11", category: "combo", name: "Autumn Leaf Set",        price: 199, mrp: 270, ...C("11"), description: "Oxidised gold maple-leaf motifs with pearl borders on vibrant orange-and-white braided thread — bold and festive." },
-  { id: "cb-12", category: "combo", name: "Indigo Fan Set",         price: 199, mrp: 270, ...C("12"), tag: "Bestseller", description: "A dramatic indigo fan-shaped lumba with cascading blue beads paired with a matching evil eye rakhi — unforgettable." },
+  { id: "cb-01", category: "combo", name: "Bhaiya Bhabhi Tag Set",  price: 300, mrp: 370, ...C("01"), tag: "Bestseller", description: "\"BHAIYA\" in a neat oval for him, \"BHABHI\" with a cheeky parrot and cascading pearl tassel for her." },
+  { id: "cb-02", category: "combo", name: "Emerald Square Set",     price: 250, mrp: 300, ...C("02"), description: "Rich emerald green meenakari square pieces — a matching rakhi and lumba on gold chain, both dripping with pearl drops." },
+  { id: "cb-03", category: "combo", name: "Rose Quartz Set",        price: 230, mrp: 270, ...C("03"), description: "Blush pink and lavender beads with an oval crystal center — a soft and romantic bhaiya-bhabhi duo." },
+  { id: "cb-04", category: "combo", name: "Maharani Set",           price: 350, mrp: 450, stock: 4, ...C("04"), description: "Her lumba drips with marquise stones and floral clusters; his rakhi gleams with matching jewels. Regal." },
+  { id: "cb-05", category: "combo", name: "Pearl Garden Set",       price: 350, mrp: 450, stock: 3, ...C("05"), description: "A grand floral lumba and a round pearl disc rakhi on golden thread — beautifully matched and breathtaking." },
+  { id: "cb-06", category: "combo", name: "Crystal Lotus Set",      price: 330, mrp: 410, ...C("06"), description: "Sparkling crystal lotus-leaf motifs — her lumba with an amber bead cascade, his rakhi light and luminous." },
+  { id: "cb-07", category: "combo", name: "Butterfly Nazar Set",    price: 350, mrp: 450, stock: 4, ...C("07"), description: "A bold golden butterfly lumba with evil eye center, paired with a petite matching eye rakhi — playful protection." },
+  { id: "cb-08", category: "combo", name: "Maldar Bhabhi Set",      price: 300, mrp: 370, ...C("08"), description: "A cheeky cartoon \"Maldar Bhabhi\" lumba with flower trim and a dainty crystal floral rakhi — guaranteed smiles." },
+  { id: "cb-09", category: "combo", name: "Diamond Tassel Set",     price: 250, mrp: 300, ...C("09"), tag: "New", description: "A sparkling diamond-cut oval rakhi and a matching pearl tassel lumba in rich maroon — glamorous and paired." },
+  { id: "cb-10", category: "combo", name: "Vintage Bird Set",       price: 300, mrp: 370, ...C("10"), description: "Antique brass bird charms with teal enamel and pearl tassel drops on olive thread — artisanal, old-world character." },
+  { id: "cb-11", category: "combo", name: "Autumn Leaf Set",        price: 300, mrp: 370, ...C("11"), description: "Oxidised gold maple-leaf motifs with pearl borders on vibrant orange-and-white braided thread — bold and festive." },
+  { id: "cb-12", category: "combo", name: "Indigo Fan Set",         price: 300, mrp: 370, ...C("12"), tag: "Bestseller", description: "A dramatic indigo fan-shaped lumba with cascading blue beads paired with a matching evil eye rakhi — unforgettable." },
   // Kids
-  { id: "kd-01", category: "kids", name: "Monster Mates",       price: 39, mrp: 59, ...K("01"), description: "Two cheeky cartoon monster charms — one on yellow, one on blue — for the little bhai who's anything but boring.", variants: [{ label: "Yellow", value: "yellow", color: "#D97706" }, { label: "Blue", value: "blue", color: "#1E40AF" }] },
-  { id: "kd-02", category: "kids", name: "Fluffy OK",           price: 39, mrp: 59, ...K("02"), description: "Soft pink pom-pom rakhis with a fun bottle charm on cotton thread — squishy, sweet, and made for little wrists.", variants: [{ label: "Pink", value: "pink", color: "#DB2777" }, { label: "Blue", value: "blue", color: "#1E40AF" }] },
-  { id: "kd-03", category: "kids", name: "Charm Bracelet Duo",  price: 59, mrp: 80, image: "/rakhis2026/kids/K03-1.png", description: "Rainbow crystal bead bracelets with a Hello Kitty charm and a silver bird — a set little sisters will treasure.", variants: [{ label: "Hello Kitty", value: "hello-kitty", color: "#F9A8D4" }, { label: "Bird Charm", value: "bird", color: "#9CA3AF" }] },
+  { id: "kd-01", category: "kids", name: "Monster Mates",       price: 140, mrp: 160, ...K("01"), description: "Two cheeky cartoon monster charms — one on yellow, one on blue — for the little bhai who's anything but boring.", variants: [{ label: "Yellow", value: "yellow", color: "#D97706" }, { label: "Blue", value: "blue", color: "#1E40AF" }] },
+  { id: "kd-02", category: "kids", name: "Fluffy OK",           price: 140, mrp: 160, ...K("02"), description: "Soft pink pom-pom rakhis with a fun bottle charm on cotton thread — squishy, sweet, and made for little wrists.", variants: [{ label: "Pink", value: "pink", color: "#DB2777" }, { label: "Blue", value: "blue", color: "#1E40AF" }] },
+  { id: "kd-03", category: "kids", name: "Charm Bracelet Duo",  price: 160, mrp: 180, image: "/rakhis2026/kids/K03-1.png", description: "Rainbow crystal bead bracelets with a Hello Kitty charm and a silver bird — a set little sisters will treasure.", variants: [{ label: "Hello Kitty", value: "hello-kitty", color: "#F9A8D4" }, { label: "Bird Charm", value: "bird", color: "#9CA3AF" }] },
 ];
 
 export function getProductById(id: string) {
@@ -110,3 +107,16 @@ export function placeholderColor(id: string) {
   const n = parseInt(id.replace(/\D/g, "").slice(-2) || "0");
   return PLACEHOLDER_COLORS[n % PLACEHOLDER_COLORS.length];
 }
+
+export async function getProducts(): Promise<Product[]> {
+  const { kv } = await import("@/lib/kv");
+  const overrides = (await kv.get<Record<string, Product>>("product:overrides")) ?? {};
+  const deletedIds = (await kv.get<string[]>("product:deleted")) ?? [];
+  return [
+    ...products
+      .filter((p) => !deletedIds.includes(p.id))
+      .map((p) => overrides[p.id] ? { ...p, ...overrides[p.id] } : p),
+    ...Object.values(overrides).filter((p) => !products.find((s) => s.id === p.id)),
+  ];
+}
+

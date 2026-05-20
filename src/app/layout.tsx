@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { CartProvider } from "@/lib/cart";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -31,11 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${outfit.variable}`}>
       <body className="min-h-dvh flex flex-col">
-        <CartProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </CartProvider>
+        {children}
       </body>
     </html>
   );

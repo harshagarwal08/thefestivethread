@@ -67,7 +67,14 @@ function shippedEmail(order: StoredOrder, awb: string, courierName: string): str
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("[webhook/shiprocket] payload", JSON.stringify(body));
+    console.log("[webhook/tracking] payload", JSON.stringify(body));
+
+    // Verify token
+    const token = body.token ?? req.headers.get("x-token") ?? "";
+    if (process.env.TRACKING_WEBHOOK_TOKEN && token !== process.env.TRACKING_WEBHOOK_TOKEN) {
+      console.error("[webhook/tracking] invalid token");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Shiprocket sends different payload shapes — normalise
     const awb: string = body.awb ?? body.AWB ?? "";

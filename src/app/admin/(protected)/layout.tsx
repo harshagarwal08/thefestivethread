@@ -1,5 +1,5 @@
 import { redirect, RedirectType } from "next/navigation";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -8,10 +8,7 @@ export const metadata = { title: "Admin — The Festive Thread" };
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const jar = await cookies();
   const authed = jar.get("tft_admin")?.value === process.env.ADMIN_PASSWORD;
-  const hdr = await headers();
-  const pathname = hdr.get("x-pathname") ?? hdr.get("next-url") ?? "";
-  const isLoginPage = pathname.includes("/admin/login");
-  if (!authed && !isLoginPage) redirect("/admin/login", RedirectType.replace);
+  if (!authed) redirect("/admin/login", RedirectType.replace);
 
   return (
     <div className="min-h-dvh bg-[#F5F1EB] flex flex-col">
@@ -22,6 +19,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             {[
               { href: "/admin", label: "Orders" },
               { href: "/admin/discounts", label: "Discounts" },
+              { href: "/admin/products", label: "Products" },
             ].map((l) => (
               <Link key={l.href} href={l.href}
                 className="text-[0.65rem] tracking-[0.12em] uppercase text-taupe-light hover:text-cream transition-colors">

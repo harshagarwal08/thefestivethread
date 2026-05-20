@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const FREE_SHIPPING_THRESHOLD = 1; // TEMP: lowered for testing — revert to 499
-const FLAT_SHIPPING_RATE = 99;
+const FREE_SHIPPING_THRESHOLD = 0;
+const FLAT_SHIPPING_RATE = 0;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;

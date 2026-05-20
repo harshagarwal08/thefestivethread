@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPaymentRequest } from "@/lib/instamojo";
-import { getProductById } from "@/lib/products";
+import { getProducts } from "@/lib/products";
+import type { Product } from "@/lib/products";
 import { getBox, getChocolate } from "@/lib/hamperOptions";
 import { validateDiscount, incrementUsage } from "@/lib/discount";
 import { kv } from "@/lib/kv";
 
 export const runtime = "nodejs";
 
-const FREE_SHIPPING_THRESHOLD = 1; // TEMP: lowered for testing — revert to 499
-const FLAT_SHIPPING_RATE = 99;
+const FREE_SHIPPING_THRESHOLD = 0;
+const FLAT_SHIPPING_RATE = 0;
 const ORDER_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 interface IncomingItem {
@@ -61,11 +62,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Re-derive all prices server-side
+    const allProducts = await getProducts();
+    const findProduct = (id: string): Product | undefined => allProducts.find((p) => p.id === id);
+
     let subtotal = 0;
     const validatedItems: IncomingItem[] = [];
 
     for (const item of items) {
-      const product = getProductById(item.productId);
+      const product = findProduct(item.productId);
       if (!product) {
         return NextResponse.json({ error: `Unknown product: ${item.productId}` }, { status: 400 });
       }
@@ -89,7 +93,7 @@ export async function POST(req: NextRequest) {
       const choco = getChocolate(h.chocolateId as never);
       let hamperTotal = box.price + choco.price;
       for (const r of h.rakhis) {
-        const product = getProductById(r.productId);
+        const product = findProduct(r.productId);
         if (!product) return NextResponse.json({ error: `Unknown product: ${r.productId}` }, { status: 400 });
         if (r.quantity < 1 || r.quantity > 20) return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
         hamperTotal += product.price * r.quantity;
@@ -117,7 +121,7 @@ export async function POST(req: NextRequest) {
       hamperItems: validatedHamperItems.map((h) => {
         const box = getBox(h.boxId as never);
         const choco = getChocolate(h.chocolateId as never);
-        const rakhisTotal = h.rakhis.reduce((s, r) => s + (getProductById(r.productId)?.price ?? 0) * r.quantity, 0);
+        const rakhisTotal = h.rakhis.reduce((s, r) => s + (findProduct(r.productId)?.price ?? 0) * r.quantity, 0);
         return {
           hamperId: h.hamperId,
           boxId: h.boxId,
@@ -125,14 +129,14 @@ export async function POST(req: NextRequest) {
           chocolateId: h.chocolateId,
           chocolateLabel: choco.label,
           rakhis: h.rakhis.map((r) => {
-            const p = getProductById(r.productId)!;
+            const p = findProduct(r.productId)!;
             return { productId: r.productId, name: p.name, quantity: r.quantity, variant: r.variant, lineTotal: p.price * r.quantity };
           }),
           lineTotal: box.price + choco.price + rakhisTotal,
         };
       }),
       items: validatedItems.map((it) => {
-        const product = getProductById(it.productId)!;
+        const product = findProduct(it.productId)!;
         const hamperAdd = it.hamper
           ? getBox(it.hamper.boxId as never).price + getChocolate(it.hamper.chocolateId as never).price
           : 0;

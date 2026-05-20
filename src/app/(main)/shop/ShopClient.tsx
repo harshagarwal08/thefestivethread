@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { products, categories, Category } from "@/lib/products";
+import { categories, Category } from "@/lib/products";
+import type { Product } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 
 const shopCategories = categories;
-const shopProducts = products;
 
-export default function ShopClient() {
+export default function ShopClient({ products: shopProducts }: { products: Product[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [sort, setSort] = useState("default");
